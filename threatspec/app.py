@@ -143,7 +143,7 @@ class ThreatSpecApp():
 
         logger.debug("Creating directories")
         try:
-            data.create_directories([p.path for p in self.config.paths])
+            data.create_directories("threatmodel")
         except IOError as e:
             logger.error("Failed to create directories: {}".format(str(e)))
             raise
