@@ -1,0 +1,5 @@
+project:
+  name: "threatspec project"
+  description: "A threatspec project."
+paths:
+  - './'
