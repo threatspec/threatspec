@@ -26,7 +26,7 @@ def is_threatspec_path(path):
 def create_directories(paths): 
     for path in paths:
         try:
-            os.mkdir(os.path.join(os.getcwd(), path))
+            os.mkdir(path)
         except FileExistsError:
             pass
 
