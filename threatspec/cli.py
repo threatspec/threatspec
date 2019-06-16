@@ -1,8 +1,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import click
-from threatspec.app import ThreatSpecApp
+import click, sys
+from threatspec import app
 
 def validate_logging(ctx, param, value):
     levels = {
@@ -26,24 +26,24 @@ def configure_logger(level, verbose):
 @click.group()
 @click.option("--log-level", "-l", callback=validate_logging, default="info", help="Set the log level. Must be one of: crit, error, warn, info, debug, none.")
 @click.option("--verbose/--no-verbose", default=False, help="Makes logging more verbose.")
-def cli(log_level, verbose):
+@click.version_option()
+def cli(log_level, verbose, version):
     configure_logger(log_level, verbose)
-    pass
     
 @cli.command()
 def init():
-    app = ThreatSpecApp()
-    app.init()
+    threatspec = app.ThreatSpecApp()
+    threatspec.init()
 
 @cli.command()
 def run():
-    app = ThreatSpecApp()
-    app.run()
+    threatspec = app.ThreatSpecApp()
+    threatspec.run()
 
 @cli.command()
 def report():
-    app = ThreatSpecApp()
-    app.report()
+    threatspec = app.ThreatSpecApp()
+    threatspec.report()
     
 if __name__ == '__main__':
     cli(None, None)
