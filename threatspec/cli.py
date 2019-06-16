@@ -27,7 +27,7 @@ def configure_logger(level, verbose):
 @click.option("--log-level", "-l", callback=validate_logging, default="info", help="Set the log level. Must be one of: crit, error, warn, info, debug, none.")
 @click.option("--verbose/--no-verbose", default=False, help="Makes logging more verbose.")
 @click.version_option()
-def cli(log_level, verbose, version):
+def cli(log_level, verbose):
     configure_logger(log_level, verbose)
     
 @cli.command()
