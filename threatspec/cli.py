@@ -21,7 +21,7 @@ def configure_logger(level, verbose):
     if verbose:
         logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=level)
     else:
-        logging.basicConfig(format='%(message)s', level=level)        
+        logging.basicConfig(format='%(message)s', level=level)
 
 @click.group()
 @click.option("--log-level", "-l", callback=validate_logging, default="info", help="Set the log level. Must be one of: crit, error, warn, info, debug, none.")
@@ -31,13 +31,30 @@ def cli(log_level, verbose):
     """
     threatspec - threat modeling as code
 
-    threatspec is an open source project that aims to close the gap between 
-    development and security by bringing the threat modelling process further 
-    into the development process. This is achieved by having developers and 
-    security engineers write threat specifications alongside code, then 
-    dynamically generating reports and data-flow diagrams from the code. This 
-    allows engineers to capture the security context of the code they write, 
+    threatspec is an open source project that aims to close the gap between
+    development and security by bringing the threat modelling process further
+    into the development process. This is achieved by having developers and
+    security engineers write threat specifications alongside code, then
+    dynamically generating reports and data-flow diagrams from the code. This
+    allows engineers to capture the security context of the code they write,
     as they write it.
+    
+    Usage:
+    
+    # Initialise threatspec in the current directory
+    $ threatspec init
+    
+    # Configure the source code paths
+    $ $EDITOR threatspec.yaml
+    
+    # Run threatspec against the source code paths
+    $ threatspec run
+    
+    # Generate the threat mode report
+    $ threatspec report
+    
+    For more information for each subcommand use --help. For everything else,
+    visit the website at https://threatspec.org
     """
 
     configure_logger(log_level, verbose)
@@ -47,7 +64,7 @@ def init():
     """
     Initialise threatspec in the current directory.
 
-    This will create a project configuration file called threatspec.yaml. Edit 
+    This will create a project configuration file called threatspec.yaml. Edit
     this file to configure the project name and description as well the source
     code paths for threatspec to scan.
 
@@ -57,11 +74,11 @@ def init():
     The following file contains the collection of mitigations, acceptances,
     connections etc identified as annotations in code:
 
-        threatmodel/threatmodel.json 
+        threatmodel/threatmodel.json
 
     The following three threat model library files are loaded each time threatspec
     is run. If new threats, controls or components are found, they are added to these
-    files. 
+    files.
     
     This allows threats, controls and components to be used across projects
     and allows you to create threat library files, for example from OWASP or CWE
@@ -85,7 +102,7 @@ def run():
     the three library json files.
 
     Once all the library files have been loaded from the paths, threatspec run will
-    recursively parse each file in the path, looking for threatspec annotations. 
+    recursively parse each file in the path, looking for threatspec annotations.
     
     You can exclude patterns from being searched (for example 'node_modules') using the
     'ignore' key for the paths in the configuration file. See the documentation for
@@ -110,8 +127,8 @@ def report():
     
     ThreatModel.md
 
-    This document contains tables of mitigations etc (including any
-    tests), as well as connections and reviews.
+    This document contains tables of mitigations etc (including any tests), as
+    well as connections and reviews.
     """
 
     threatspec = app.ThreatSpecApp()

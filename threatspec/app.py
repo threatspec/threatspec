@@ -1,7 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import glob, os
+import glob, os, sys
 from threatspec import config, data, parser, reporter, threatmodel
 from pprint import pprint
 
@@ -29,7 +29,7 @@ class ThreatSpecApp():
                 logger.debug("Parsing source files in path {}".format(path))
                 if os.path.isfile(path):
                     self.parser = parser.SourceFileParser(self.threatmodel)
-                    self.parser.parse_file(path)                    
+                    self.parser.parse_file(path)
                     """
                     if os.path.splitext(filename)[1].lower() in [".json", ".yaml"]:
                         self.parser = parser.YamlFileParser(self.threatmodel)
@@ -56,7 +56,7 @@ class ThreatSpecApp():
             self.threat_library.load(data.read_json(filename))
             logger.debug("Loaded threat library from {}".format(filename))
         except FileNotFoundError:
-            pass        
+            pass
 
     def save_threat_library(self):
         data.write_json_pretty(self.threat_library.as_dict(), data.cwd(), "threatmodel", "threats.json") # TODO: Unhardcode
@@ -66,7 +66,7 @@ class ThreatSpecApp():
             self.control_library.load(data.read_json(path, "threatmodel", "controls.json"))
             logger.debug("Loaded control library from path {}".format(path))
         except FileNotFoundError:
-            pass 
+            pass
 
     def save_control_library(self):
         data.write_json_pretty(self.control_library.as_dict(), data.cwd(), "threatmodel", "controls.json") # TODO: Unhardcode
@@ -76,7 +76,7 @@ class ThreatSpecApp():
             self.component_library.load(data.read_json(path, "threatmodel", "components.json"))
             logger.debug("Loaded component library from path {}".format(path))
         except FileNotFoundError:
-            pass 
+            pass
 
     def save_component_library(self):
         data.write_json_pretty(self.component_library.as_dict(), data.cwd(), "threatmodel", "components.json") # TODO: Unhardcode
@@ -100,7 +100,7 @@ class ThreatSpecApp():
 
     def save_threat_library_data(self):
         logger.debug("Saving threat library")
-        self.save_threat_library()        
+        self.save_threat_library()
         logger.debug("Saving control library")
         self.save_control_library()
         logger.debug("Saving component library")
@@ -118,7 +118,7 @@ class ThreatSpecApp():
                 continue
             base_path = data.glob_to_root(path.path)
             if data.is_threatspec_path(base_path):
-                self.load_threat_model_data_from_path(base_path)        
+                self.load_threat_model_data_from_path(base_path)
 
     def save_threat_model_data(self):
         logger.debug("Savinfg threat model")
@@ -135,8 +135,8 @@ class ThreatSpecApp():
         try:
             data.copy_pkg_file("data/default_config.yaml", "threatspec.yaml")
         except FileExistsError as e:
-            logger.error("Failed to create the configuration file: {}".format(str(e)))
-            raise
+            logger.error("Configuration file already exists")
+            sys.exit(0)
 
         logger.debug("Loading configuration.")
         self.config.load(data.read_yaml("threatspec.yaml"))
@@ -151,13 +151,7 @@ class ThreatSpecApp():
 Threatspec has been initialised. You can now configure the project in this
 repository by editing the following file:
 
-    threatspec.yaml
-
-See the documentation at https://threatspec.org for how to configure this file.
-
-The threatmodel/ directory has also been created and will contain the output
-json files created by 'threatspec run' which will parse the source code paths in
-threatspec.yaml for threatspec code annotations.
+    threatspec.yaml.
         """)
 
     def run(self):
@@ -178,17 +172,9 @@ the project:
 
     threatmodel/threatmodel.json
 
-This file is created every time 'threatspec run' is run.
+The following library files have also been create:
 
-The following library files have also been created and contain data that persists
-across threatspec runs. This files are also loaded for any paths in threatspec.yaml
-that also contain a threatspec.yaml file.
-
-    threatmodel/threats.json
-    threatmodel/controls.json
-    threatmodel/components.json
-
-To generate a user-friendly threat mode report, run 'threatspec report'.
+    threatmodel/threats.json threatmodel/controls.json threatmodel/components.json
         """)
 
     def report(self):
@@ -201,7 +187,7 @@ To generate a user-friendly threat mode report, run 'threatspec report'.
 
         self.load_threat_model_data()
 
-        self.generate_report()        
+        self.generate_report()
 
         logger.info("""
 The following threat model markdown report has been created:
@@ -211,10 +197,4 @@ The following threat model markdown report has been created:
 The following visualisation image used in the report has also been created:
 
     ThreatModel.gv.png
-
-Congratulations on dynamically creating your living threat model directly from code! :)
-
-For more information on other things you can do with threatspec, checkout the website:
-
-    https://threatspec.org
         """)
