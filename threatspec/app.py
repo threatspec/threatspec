@@ -129,7 +129,7 @@ class ThreatSpecApp():
         self.reporter.generate()
         
     def init(self):
-        logger.info("Initialising threatspec")
+        logger.info("Initialising threatspec...")
 
         logger.debug("Creating default configuration file")
         try:
@@ -147,32 +147,74 @@ class ThreatSpecApp():
         except IOError as e:
             logger.error("Failed to create directories: {}".format(str(e)))
             raise
+        logger.info("""
+Threatspec has been initialised. You can now configure the project in this
+repository by editing the following file:
+
+    threatspec.yaml
+
+See the documentation at https://threatspec.org for how to configure this file.
+
+The threatmodel/ directory has also been created and will contain the output
+json files created by 'threatspec run' which will parse the source code paths in
+threatspec.yaml for threatspec code annotations.
+        """)
 
     def run(self):
+        logger.info("Running threatspec...")
+
         logger.debug("Loading configuration from threatspec.yaml")
         self.config.load(data.read_yaml("threatspec.yaml"))
 
-        logger.info("Loading threat library data")
         self.load_threat_library_data()
-
-        logger.info("Parsing source files")
         self.parse_source()
-
-        logger.info("Saving threat library to threatmodel/")
         self.save_threat_library_data()
-
-        logger.info("Saving threat model to threatmodel/")
         self.save_threat_model_data()
 
+        logger.info("""
+Threatspec has been run against the source files. The following threat mode file
+has been created and contains the mitigations, acceptances, connections etc. for
+the project:
+
+    threatmodel/threatmodel.json
+
+This file is created every time 'threatspec run' is run.
+
+The following library files have also been created and contain data that persists
+across threatspec runs. This files are also loaded for any paths in threatspec.yaml
+that also contain a threatspec.yaml file.
+
+    threatmodel/threats.json
+    threatmodel/controls.json
+    threatmodel/components.json
+
+To generate a user-friendly threat mode report, run 'threatspec report'.
+        """)
+
     def report(self):
+        logger.info("Generating report...")
+
         logger.debug("Loading configuration from threatspec.yaml")
         self.config.load(data.read_yaml("threatspec.yaml"))
 
-        logger.info("Loading threat library")
         self.load_threat_library_data()
 
-        logger.info("Loading threat model")
         self.load_threat_model_data()
 
-        logger.info("Creating markdown report ThreatModel.md")
         self.generate_report()        
+
+        logger.info("""
+The following threat model markdown report has been created:
+
+    ThreatModel.md
+
+The following visualisation image used in the report has also been created:
+
+    ThreatModel.gv.png
+
+Congratulations on dynamically creating your living threat model directly from code! :)
+
+For more information on other things you can do with threatspec, checkout the website:
+
+    https://threatspec.org
+        """)
