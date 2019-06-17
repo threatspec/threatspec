@@ -9,10 +9,13 @@ def glob_to_root(path):
     return os.path.dirname(path)
 
 def recurse_path(path):
-    if "*" in path:
-        return glob.iglob(path)
-    else:
-        return glob.iglob(os.path.join(path, "**/*"), recursive=True)
+    if os.path.isfile(path):
+        return [path]
+    elif os.path.isdirection(path):
+        if "*" in path:
+            return glob.iglob(path)
+        else:
+            return glob.iglob(os.path.join(path, "**/*"), recursive=True)
 
 def path_ignored(path, ignore):
     for i in ignore:
