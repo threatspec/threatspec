@@ -74,7 +74,7 @@ class MarkdownTable():
         self.headers = headers
 
     def add_row(self, row):
-        self.rows.append(row)        
+        self.rows.append(row)
 
 class Markdown():
     def __init__(self):
@@ -105,15 +105,15 @@ class Markdown():
 
 class Graph():
     def __init__(self, title):
-        self.dot = Digraph(comment=title, # TODO: Unhardcode 
+        self.dot = Digraph(comment=title, # TODO: Unhardcode
             engine='dot',
             format='png',
             graph_attr={
-                'rankdir': 'LR' 
+                'rankdir': 'LR'
             },
             node_attr={
-                'fontcolor': '#2f3640', 
-                'shape': 'rect', 
+                'fontcolor': '#2f3640',
+                'shape': 'rect',
                 'fontsize': '10',
                 'fontname': 'Helvetica'
             },
@@ -122,7 +122,7 @@ class Graph():
                 'fontsize': '10',
                 'fontname': 'Helvetica'
             }
-        )            
+        )
 
 class MarkdownReporter(Reporter):
     def generate(self):
@@ -161,7 +161,7 @@ class MarkdownReporter(Reporter):
 
         # Controls
         for control_id, control in self.threatmodel.control_library.controls.items():
-            self.graph.dot.node(control_id, "Control\n{}\n\n{}".format(control_id, control.name), color='#27ae60')         
+            self.graph.dot.node(control_id, "Control\n{}\n\n{}".format(control_id, control.name), color='#27ae60')
 
         self.report.add_h1("Threats")
 
@@ -183,14 +183,14 @@ class MarkdownReporter(Reporter):
             self.graph.dot.edge(threat_id, exposure_id, color='#c0392b', concentrate='true')
 
             table.add_row([
-                "Exposure", 
-                component.name, 
-                threat.name, 
+                "Exposure",
+                component.name,
+                threat.name,
                 exposure.details,
-                "", 
-                "", 
-                exposure.source.filename, 
-                str(exposure.source.line), 
+                "",
+                "",
+                exposure.source.filename,
+                str(exposure.source.line),
                 self.report.code(exposure.source.code)
             ])
 
@@ -207,14 +207,14 @@ class MarkdownReporter(Reporter):
             self.graph.dot.edge(acceptance_id, threat_id, color='#c0392b', concentrate='true')
 
             table.add_row([
-                "Acceptance", 
-                component.name, 
-                threat.name, 
-                acceptance.details, 
-                "", 
-                "", 
-                acceptance.source.filename, 
-                str(acceptance.source.line), 
+                "Acceptance",
+                component.name,
+                threat.name,
+                acceptance.details,
+                "",
+                "",
+                acceptance.source.filename,
+                str(acceptance.source.line),
                 self.report.code(acceptance.source.code)
             ])
 
@@ -239,14 +239,14 @@ class MarkdownReporter(Reporter):
             self.graph.dot.edge(threat_id, transfer_id, color='#8e44ad', concentrate='true')
 
             table.add_row(
-                ["Transfer", 
-                "{} (from {})".format(dest.name, source.name), 
-                threat.name, 
-                transfer.details, 
-                "", 
-                "", 
+                ["Transfer",
+                "{} (from {})".format(dest.name, source.name),
+                threat.name,
+                transfer.details,
+                "",
+                "",
                 transfer.source.filename,
-                str(transfer.source.line), 
+                str(transfer.source.line),
                 self.report.code(transfer.source.code)
             ])
 
@@ -274,14 +274,14 @@ class MarkdownReporter(Reporter):
                 test_line = ""
 
             table.add_row([
-                "Mitigation", 
-                component.name, 
-                threat.name, 
-                control.name, 
-                test_field, 
-                test_line, 
-                mitigation.source.filename, 
-                str(mitigation.source.line), 
+                "Mitigation",
+                component.name,
+                threat.name,
+                control.name,
+                test_field,
+                test_line,
+                mitigation.source.filename,
+                str(mitigation.source.line),
                 self.report.code(mitigation.source.code)
             ])
 
@@ -302,15 +302,15 @@ class MarkdownReporter(Reporter):
             self.graph.dot.edge(source_id, dest_id, label=connection.details, concentrate='true')
 
             table.add_row([
-                source.name, 
-                dest.name, 
-                connection.details, 
+                source.name,
+                dest.name,
+                connection.details,
                 connection.source.filename,
-                str(connection.source.line), 
+                str(connection.source.line),
                 self.report.code(connection.source.code)
             ])
 
-        self.report.add_table(table)         
+        self.report.add_table(table)
 
         # Reviews
         self.report.add_h1("Reviews")
@@ -326,10 +326,10 @@ class MarkdownReporter(Reporter):
             self.graph.dot.edge(review_id, component_id)
 
             table.add_row([
-                component.name, 
-                review.details, 
-                review.source.filename, 
-                str(review.source.line), 
+                component.name,
+                review.details,
+                review.source.filename,
+                str(review.source.line),
                 self.report.code(review.source.code)
             ])
 

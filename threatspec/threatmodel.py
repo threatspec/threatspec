@@ -114,7 +114,7 @@ class Library(Base):
                     id_body = match["id"]+"root"
                 else:
                     id_body = match["id"]
-                match["id"] = "#" + re.sub('[^a-z0-9_]+', '_', id_body.strip().lower().replace('-','')).strip('_')                
+                match["id"] = "#" + re.sub('[^a-z0-9_]+', '_', id_body.strip().lower().replace('-','')).strip('_')
 
             if not match["description"]:
                 match["description"] = ""
@@ -145,7 +145,7 @@ class ControlLibrary(Library):
     def add_control(self, name=None):
         data = self.parse(name)
         if isinstance(data, str):
-            return data        
+            return data
         self.controls[data["id"]] = Control(data["id"], data["name"], data["description"])
         return data["id"]
 
@@ -186,7 +186,7 @@ class ComponentLibrary(Library):
     def load(self, data):
         for id, component in data["components"].items():
             if id not in self.components: # TODO Handle id clash
-                self.components[id] = Component(id, component["name"], component["description"])
+                self.components[id] = Component(id, component["name"], component["description"], component["paths"])
 
 @dataclass
 class ThreatModel(Library):
@@ -247,7 +247,7 @@ class ThreatModel(Library):
     def add_review(self, component, details, source):
         self.reviews.append(Review(
             self.component_library.add_component(component),
-            details, 
+            details,
             Source(**source)
         ))
 
