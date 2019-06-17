@@ -134,7 +134,7 @@ class MarkdownReporter(Reporter):
         self.report.add_paragraph(self.project.description)
 
         self.report.add_h1("Diagram")
-        self.report.add_image("Diagram", "threatspec.gv.png", "Threat Model Diagram")
+        self.report.add_image("Diagram", "ThreatModel.png", "Threat Model Diagram")
 
         # Tests
         tests_by_component_control = {}
@@ -336,5 +336,5 @@ class MarkdownReporter(Reporter):
         self.report.add_table(table)
 
         # Outputs
-        self.graph.dot.render('threatspec.gv')
+        self.graph.dot.render('ThreatModel.gv')
         data.write_file(self.report.data, "ThreatModel.md")
