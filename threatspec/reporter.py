@@ -1,17 +1,15 @@
-from dataclasses import dataclass, field
-from typing import ClassVar
 import re, uuid
 from threatspec import data, threatmodel, config
 from pprint import pprint
 from graphviz import Digraph
 
-@dataclass
-class Reporter:
-    project: config.Config
-    threatmodel: threatmodel.ThreatModel
+class Reporter():
+    def __init__(self, project: config.Project, threatmodel: threatmodel.ThreatModel):
+        self.project = project
+        self.threatmodel = threatmodel
 
-    components: ClassVar
-    component_pairs: ClassVar
+        self.components = {}
+        self.component_pairs: {}
 
     def random_id(self):
         return uuid.uuid4().hex
@@ -125,6 +123,7 @@ class Graph():
         )
 
 class MarkdownReporter(Reporter):
+        
     def generate(self):
         self.parse_component_paths()
 

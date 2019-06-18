@@ -142,7 +142,7 @@ class ThreatSpecApp():
         try:
             data.copy_pkg_file("data/default_config.yaml", "threatspec.yaml")
         except FileExistsError as e:
-            logger.error("Configuration file already exists")
+            logger.error("Configuration file already exists, it looks like threatspec has already been initiated here.")
             sys.exit(0)
 
         logger.debug("Loading configuration.")

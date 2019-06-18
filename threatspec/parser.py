@@ -2,7 +2,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 import yaml, re
-from dataclasses import dataclass
 from threatspec.threatmodel import ThreatModel
 
 class Parser():

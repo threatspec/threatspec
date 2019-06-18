@@ -1,13 +1,11 @@
-from dataclasses import dataclass, field
 from typing import List, Dict, Any
 from threatspec import data
 
-@dataclass
-class Project:
-    name: str = field(default_factory=str)
-    description: str = field(default_factory=str)
+class Project():
+    def __init__(self, name: str = "", description: str = ""):
+        self.name = name
+        self.description = description
 
-# TODO: Work out if this is better as a dataclass anyway
 class Path:
     def __init__(self, obj):
         self.path = ""
@@ -27,10 +25,10 @@ class Path:
                 else:
                     raise TypeError("ignore must be a string or list")
 
-@dataclass
 class Config:
-    project: Project = field(default_factory=Project)
-    paths: List[Path] = field(default_factory=list)
+    def __init__(self, project: Project = Project(), paths: List[Path] = []):
+        self.project = project
+        self.paths = paths
 
     def load(self, data):
         self.project = Project(data["project"]["name"], data["project"]["description"])

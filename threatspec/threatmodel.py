@@ -1,87 +1,174 @@
 from pprint import pprint
-from dataclasses import dataclass, asdict, field, make_dataclass
-from typing import List, Dict, ClassVar
+from typing import List, Dict
 import uuid, re
 
-@dataclass
 class Source():
-    annotation: str
-    code: str
-    filename: str
-    line: int
+    def __init__(self, annotation: str, code: str, filename: str, line: int):
+        self.annotation = annotation
+        self.code = code
+        self.filename = filename
+        self.line = line
+        
+    def as_dict(self):
+        return {
+            "annotation": self.annotation,
+            "code": self.code,
+            "filename": self.filename,
+            "line": self.line
+        }
 
-@dataclass
 class Threat():
-    id: str
-    run_id: str
-    name: str
-    description: str = ""
+    def __init__(self, id: str, run_id: str, name: str, description: str = ""):
+        self.id = id
+        self.run_id = run_id
+        self.name = name
+        self.description = description
 
-@dataclass
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "run_id": self.run_id,
+            "name": self.name,
+            "description": self.description
+        }
+        
 class Control():
-    id: str
-    run_id: str
-    name: str
-    description: str = ""
+    def __init__(self, id: str, run_id: str, name: str, description: str = ""):
+        self.id = id
+        self.run_id = run_id
+        self.name = name
+        self.description = description
+        
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "run_id": self.run_id,
+            "name": self.name,
+            "description": self.description
+        }
 
-@dataclass
 class Component():
-    id: str
-    run_id: str
-    name: str
-    description: str = ""
-    paths: List[str] = field(default_factory=list)
+    def __init__(self, id: str, run_id: str, name: str, description: str = "", paths: List[str]=[]):
+        self.id = id
+        self.run_id = run_id
+        self.name = name
+        self.description = description
+        self.paths = paths
 
-@dataclass
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "run_id": self.run_id,
+            "name": self.name,
+            "description": self.description,
+            "paths": self.paths
+        }
+
 class Mitigation():
-    control: Control
-    threat: Threat
-    component: Component
-    source: Source
+    def __init__(self, control: Control, threat: Threat, component: Component, source: Source):
+        self.control = control
+        self.threat = threat
+        self.component = component
+        self.source = source
+        
+    def as_dict(self):
+        return {
+            "control": self.control.as_dict(),
+            "threat": self.threat.as_dict(),
+            "component": self.component.as_dict(),
+            "source": self.source.as_dict()
+        }
 
-@dataclass
 class Acceptance():
-    threat: Threat
-    component: Component
-    details: str
-    source: Source
+    def __init__(self, threat: Threat, component: Component, details: str, source: Source):
+        self.threat = threat
+        self.component = component
+        self.details = details
+        self.source = source
+        
+    def as_dict(self):
+        return {
+            "threat": self.threat.as_dict(),
+            "component": self.component.as_dict(),
+            "details": self.details,
+            "source": self.source.as_dict()
+        }
 
-@dataclass
 class Transfer():
-    threat: Threat
-    source_component: Component
-    destination_component: Component
-    details: str
-    source: Source
+    def __init__(self, threat: Threat, source_component: Component, destination_component: Component, details: str, source: Source):
+        self.threat = threat
+        self.source_component = source_component
+        self.destination_component = destination_component
+        self.details = details
+        self.source = source
+        
+    def as_dict(self):
+        return {
+            "threat": self.threat.as_dict(),
+            "source_component": self.source_component.as_dict(),
+            "destination_component": self.destination_component.as_dict(),
+            "details": self.details,
+            "source": self.source.as_dict()
+        }
 
-@dataclass
 class Exposure():
-    threat: Threat
-    component: Component
-    details: str
-    source: Source
+    def __init__(self, threat: Threat, component: Component, details: str, source: Source):
+        self.threat = threat
+        self.component = component
+        self.details = details
+        self.source = source
+    
+    def as_dict(self):
+        return {
+            "threat": self.threat.as_dict(),
+            "component": self.component.as_dict(),
+            "details": self.details,
+            "source": self.source.as_dict()
+        }
 
-@dataclass
 class Connection():
-    source_component: Component
-    destination_component: Component
-    direction: str
-    details: str
-    source: Source
+    def __init__(self, source_component: Component, destination_component: Component, direction: str, details: str, source: Source):
+        self.source_component = source_component
+        self.destination_component = destination_component
+        self.direction = direction
+        self.details = details
+        self.source = source
+        
+    def as_dict(self):
+        return {
+            "source_component": self.source_component.as_dict(),
+            "destination_component": self.destination_component.as_dict(),
+            "direction": self.direction,
+            "details": self.details,
+            "source": self.source.as_dict()
+        }
 
-@dataclass
 class Review():
-    component: Component
-    details: str
-    source: Source
+    def __init__(self, component: Component, details: str, source: Source):
+        self.component = component
+        self.details = details
+        self.source = source
 
-@dataclass
+    def as_dict(self):
+        return {
+            "component": self.component.as_dict(),
+            "details": self.details,
+            "source": self.source.as_dict()
+        }
+
 class Test():
-    component: Component
-    control: Control
-    source: Source
+    def __init__(self, component: Component, control: Control, source: Source):
+        self.component = component
+        self.control = control
+        self.source = source
+        
+    def as_dict(self):
+        return {
+            "component": self.component.as_dict(),
+            "control": self.control.as_dict(),
+            "source": self.source.as_dict()
+        }
 
-@dataclass
 class Library():
     def parse(self, name):
         # Don't parse if all we have is an ID
@@ -120,9 +207,9 @@ class Library():
         else:
             raise RuntimeError("Failed to parse ID: {}".format(name))
 
-@dataclass
 class ThreatLibrary(Library):
-    threats: Dict[str, Threat] = field(default_factory=dict)
+    def __init__(self, threats: Dict[str, Threat] = {}):
+        self.threats = threats
 
     def add_threat(self, name=None, run_id=None):
         data = self.parse(name)
@@ -139,19 +226,19 @@ class ThreatLibrary(Library):
                 
     def save(self, run_id=None):
         if not run_id:
-            return asdict(self)
+            return [t.as_dict() for t in self.threats]
             
         data = {"threats":{}}
         for id, threat in self.threats.items():
             if not threat.run_id:
                 continue
             if threat.run_id == run_id:
-                data["threats"][id] = asdict(threat)
+                data["threats"][id] = threat.as_dict()
         return data
         
-@dataclass
 class ControlLibrary(Library):
-    controls: Dict[str, Control] = field(default_factory=dict)
+    def __init__(self, controls: Dict[str, Control] = {}):
+        self.controls = controls
 
     def add_control(self, name=None, run_id=None):
         data = self.parse(name)
@@ -168,19 +255,19 @@ class ControlLibrary(Library):
     
     def save(self, run_id=None):
         if not run_id:
-            return asdict(self)
+            return [c.as_dict() for c in self.controls]
         
         data = {"controls":{}}
         for id, control in self.controls.items():
             if not control.run_id:
                 continue
             if control.run_id == run_id:
-                data["controls"][id] = asdict(control)
+                data["controls"][id] = control.as_dict()
         return data
 
-@dataclass
 class ComponentLibrary(Library):
-    components: Dict[str, Component] = field(default_factory=dict)
+    def __init__(self, components: Dict[str, Component] = {}):
+        self.components = components
 
     def add_component(self, name=None, run_id=None):
         data = self.parse(name)
@@ -202,32 +289,41 @@ class ComponentLibrary(Library):
                 
     def save(self, run_id=None):
         if not run_id:
-            return asdict(self)
+            return [c.as_dict() for c in self.components]
         
         data = {"components":{}}
         for id, component in self.components.items():
             if not component.run_id:
                 continue
             if component.run_id == run_id:
-                data["components"][id] = asdict(component)
+                data["components"][id] = component.as_dict()
         return data
                 
 
-@dataclass
 class ThreatModel(Library):
-    mitigations: List[Mitigation] = field(default_factory=list)
-    acceptances: List[Acceptance] = field(default_factory=list)
-    transfers: List[Transfer] = field(default_factory=list)
-    exposures: List[Exposure] = field(default_factory=list)
-    connections: List[Connection] = field(default_factory=list)
-    reviews: List[Review] = field(default_factory=list)
-    tests: List[Test] = field(default_factory=list)
-    
-    run_id: str = field(default_factory=str)
+    def __init__(self,
+        mitigations: List[Mitigation] = [],
+        acceptances: List[Acceptance] = [],
+        transfers: List[Transfer] = [],
+        exposures: List[Exposure] = [],
+        connections: List[Connection] = [],
+        reviews: List[Review] = [],
+        tests: List[Test] = [],
+        run_id: str = ""):
+        
+        self.mitigations = mitigations
+        self.acceptances = acceptances
+        self.transfers = transfers
+        self.exposures = exposures
+        self.connections = connections
+        self.reviews = reviews
+        self.tests = tests
+        self.run_id = run_id
+        
+        self.threat_library = None
+        self.control_library = None
+        self.component_library =  None
 
-    threat_library: ClassVar
-    control_library: ClassVar
-    component_library: ClassVar
 
     def add_mitigation(self, threat, control, component, source):
         self.mitigations.append(Mitigation(
@@ -302,4 +398,12 @@ class ThreatModel(Library):
             self.add_test(**test)
             
     def save(self):
-        return asdict(self)
+        return {
+            "mitigations": self.mitigations,
+            "exposures": self.exposures,
+            "transfers": self.transfers,
+            "acceptances": self.acceptances,
+            "connections": self.connections,
+            "reviews": self.reviews,
+            "tests": self.tests
+        }
