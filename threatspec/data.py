@@ -3,6 +3,9 @@ import pkg_resources, os, json, yaml, shutil, glob
 def cwd():
     return os.getcwd()
 
+def abs_path(*paths):
+    return os.path.abspath(os.path.join(*paths))
+    
 def glob_to_root(path):
     if "*" in path:
         return os.path.dirname(path.split("*")[0])
@@ -11,7 +14,7 @@ def glob_to_root(path):
 def recurse_path(path):
     if os.path.isfile(path):
         return [path]
-    elif os.path.isdirection(path):
+    elif os.path.isdir(path):
         if "*" in path:
             return glob.iglob(path)
         else:
@@ -21,12 +24,12 @@ def path_ignored(path, ignore):
     for i in ignore:
         if i in path:
             return True
-    return False    
+    return False
 
 def is_threatspec_path(path):
     return os.path.isfile(os.path.join(path, "threatspec.yaml"))
 
-def create_directories(paths): 
+def create_directories(paths):
     for path in paths:
         try:
             os.mkdir(path)

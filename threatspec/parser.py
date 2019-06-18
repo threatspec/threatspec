@@ -33,9 +33,9 @@ class Parser():
 
     def parse_annotation(self, annotation):
         for action in self.patterns.keys():
-            if annotation.startswith("@"+action): 
+            if annotation.startswith("@"+action):
                 data = {"action": action}
-                pattern = self.patterns[action]       
+                pattern = self.patterns[action]
                 m = re.match(pattern, annotation, re.M | re.I)
                 if m:
                     data.update(m.groupdict())
@@ -51,7 +51,7 @@ class Parser():
         for key in self.patterns.keys():
             if "@{}".format(key) in line:
                 return True
-        return False    
+        return False
 
 class SourceFileParser(Parser):
     def parse_file(self, filename):
@@ -60,7 +60,7 @@ class SourceFileParser(Parser):
                 lines = fh.readlines()
         except UnicodeDecodeError:
             return
-
+        logger.debug("Parsing file {}".format(filename))
         current_line_index = 0
 
         while current_line_index < len(lines):

@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='threatspec',
     description='threat modeling as code',
-    version='0.1.7',
+    version='0.1.9',
     license='MIT',
     author='Fraser Scott',
     author_email='fraser.scott@gmail.com',
