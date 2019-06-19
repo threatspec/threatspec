@@ -12,7 +12,7 @@ setup(
     keywords=['threat modeling', 'cyber security', 'appsec'],
     packages=find_packages(),
     include_package_data=True,
-    python_requires='>=3.7',
+    python_requires='>=3.5',
     install_requires=[
         'Click',
         'graphviz',
