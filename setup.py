@@ -8,7 +8,7 @@ setup(
     author='Fraser Scott',
     author_email='fraser.scott@gmail.com',
     url='https://github.com/threatspec/threatspec',
-    download_url='https://github.com/threatspec/threatspec/archive/v0.1.1-alpha.tar.gz',
+    download_url='https://github.com/threatspec/threatspec/archive/v0.2.0-alpha.tar.gz',
     keywords=['threat modeling', 'cyber security', 'appsec'],
     packages=find_packages(),
     include_package_data=True,
