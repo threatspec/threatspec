@@ -3,7 +3,6 @@ logger = logging.getLogger(__name__)
 
 import glob, os, sys, uuid
 from threatspec import config, data, parser, reporter, threatmodel
-from pprint import pprint
 
 class ThreatSpecApp():
     
@@ -36,7 +35,15 @@ class ThreatSpecApp():
             if data.is_threatspec_path(abs_path):
                 logger.debug("Found threatspec.yaml, loading source configuration from {}".format(abs_path))
                 new_config = config.Config()
-                new_config.load(data.read_yaml(data.abs_path(abs_path, "threatspec.yaml")))
+                
+                new_config_file = data.abs_path(abs_path, "threatspec.yaml")
+                logger.debug("Validating configuration")
+                (valid, error) = data.validate_yaml_file(new_config_file, os.path.join("data", "config_schema.json"))
+                if not valid:
+                    logger.error("Couldn't validate the configation file {}: {}".format(abs_path, error))
+                    sys.exit(0)
+         
+                new_config.load(data.read_yaml(new_config_file))
                 self.parse_source(new_config.paths, abs_path)
             else:
                 for path in data.recurse_path(abs_path):
@@ -57,8 +64,15 @@ class ThreatSpecApp():
                         """
 
     def load_threat_model(self, path):
+        filename = data.abs_path(path, "threatmodel", "threatmodel.json")
+        
+        logger.debug("Validating {}".format(filename))
+        (valid, error) = data.validate_yaml_file(filename, os.path.join("data", "threatmodel_schema.json"))
+        if not valid:
+            logger.error("Couldn't validate the threat model file {}: {}".format(filename, error))
+            sys.exit(0)
+            
         try:
-            filename = os.path.join(path, "threatmodel", "threatmodel.json")
             self.threatmodel.load(data.read_json(filename))
             logger.debug("Loaded threat model from {}".format(filename))
         except FileNotFoundError:
@@ -68,24 +82,45 @@ class ThreatSpecApp():
         data.write_json_pretty(self.threatmodel.save(), data.cwd(), "threatmodel", "threatmodel.json") # TODO: Unhardcode
     
     def load_threat_library(self, path):
+        filename = data.abs_path(path, "threatmodel", "threats.json")
+        
+        logger.debug("Validating {}".format(filename))
+        (valid, error) = data.validate_yaml_file(filename, os.path.join("data", "threats_schema.json"))
+        if not valid:
+            logger.error("Couldn't validate the threat library file {}: {}".format(filename, error))
+            sys.exit(0)
+            
         try:
-            filename = os.path.join(path, "threatmodel", "threats.json")
             self.threat_library.load(data.read_json(filename))
             logger.debug("Loaded threat library from {}".format(filename))
         except FileNotFoundError:
             pass
 
     def load_control_library(self, path):
+        filename = data.abs_path(path, "threatmodel", "controls.json")
+
+        logger.debug("Validating {}".format(filename))
+        (valid, error) = data.validate_yaml_file(filename, os.path.join("data", "controls_schema.json"))
+        if not valid:
+            logger.error("Couldn't validate the control library file {}: {}".format(filename, error))
+            sys.exit(0)
+            
         try:
-            filename = os.path.join(path, "threatmodel", "controls.json")
             self.control_library.load(data.read_json(filename))
             logger.debug("Loaded control library from path {}".format(filename))
         except FileNotFoundError:
             pass
 
     def load_component_library(self, path):
+        filename = data.abs_path(path, "threatmodel", "components.json")
+        
+        logger.debug("Validating {}".format(filename))
+        (valid, error) = data.validate_yaml_file(filename, os.path.join("data", "components_schema.json"))
+        if not valid:
+            logger.error("Couldn't validate the components library file {}: {}".format(filename, error))
+            sys.exit(0)
+            
         try:
-            filename = os.path.join(path, "threatmodel", "components.json")
             self.component_library.load(data.read_json(filename))
             logger.debug("Loaded component library from path {}".format(filename))
         except FileNotFoundError:
@@ -105,6 +140,13 @@ class ThreatSpecApp():
                 
                 new_config_file = data.abs_path(abs_path, "threatspec.yaml")
                 new_config = config.Config()
+                
+                logger.debug("Validating {}".format(new_config_file))
+                (valid, error) = data.validate_yaml_file(new_config_file, os.path.join("data", "config_schema.json"))
+                if not valid:
+                    logger.error("Couldn't validate the configation file {}: {}".format("threatspec.yaml", error))
+                    sys.exit(0)
+         
                 new_config.load(data.read_yaml(new_config_file))
                 self.load_threat_library_data_from_path(new_config.paths, abs_path)
 
@@ -140,13 +182,20 @@ class ThreatSpecApp():
 
         logger.debug("Creating default configuration file")
         try:
-            data.copy_pkg_file("data/default_config.yaml", "threatspec.yaml")
+            data.copy_pkg_file(os.path.join("data","default_config.yaml"), "threatspec.yaml")
         except FileExistsError as e:
             logger.error("Configuration file already exists, it looks like threatspec has already been initiated here.")
             sys.exit(0)
 
-        logger.debug("Loading configuration.")
-        self.config.load(data.read_yaml("threatspec.yaml"))
+        config_file = data.abs_path(data.cwd(), "threatspec.yaml")
+        logger.debug("Validating {}}".format(config_file))
+        (valid, error) = data.validate_yaml_file(config_file, os.path.join("data", "config_schema.json"))
+        if not valid:
+            logger.error("Couldn't validate the configation file {}: {}".format(config_file, error))
+            sys.exit(0)
+            
+        logger.debug("Loading configuration")
+        self.config.load(data.read_yaml(config_file))
 
         logger.debug("Creating directories")
         try:
@@ -163,8 +212,14 @@ repository by editing the following file:
 
     def run(self):
         logger.info("Running threatspec...")
-
+            
         config_path = data.abs_path(data.cwd(), "threatspec.yaml")
+        
+        logger.debug("Validating configuration")
+        (valid, error) = data.validate_yaml_file(config_path, os.path.join("data", "config_schema.json"))
+        if not valid:
+            logger.error("Couldn't validate the configation file {}: {}".format("threatspec.yaml", error))
+            sys.exit(0)
         self.config.load(data.read_yaml(config_path))
 
         self.load_threat_library_data()
@@ -187,6 +242,12 @@ The following library files have also been create:
     def report(self):
         logger.info("Generating report...")
 
+        logger.debug("Validating configuration")
+        (valid, error) = data.validate_yaml_file("threatspec.yaml", os.path.join("data", "config_schema.json"))
+        if not valid:
+            logger.error("Couldn't validate the configation file {}: {}".format("threatspec.yaml", error))
+            sys.exit(0)
+         
         logger.debug("Loading configuration from threatspec.yaml")
         self.config.load(data.read_yaml("threatspec.yaml"))
 

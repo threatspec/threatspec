@@ -1,4 +1,5 @@
 import pkg_resources, os, json, yaml, shutil, glob
+import jsonschema
 
 def cwd():
     return os.getcwd()
@@ -61,8 +62,19 @@ def write_yaml(data, *path):
     with open(path, 'w') as fh:
         fh.write(yaml.dump(data))
 
+def validate_yaml_file(file_path, schema_file):
+    schema_path = resolve_pkg_file(schema_file)
+    try:
+        jsonschema.validate(read_yaml(file_path), read_yaml(schema_path))
+    except jsonschema.exceptions.ValidationError as e:
+        return (False, str(e))
+    return (True, None)
+    
+def resolve_pkg_file(*path):
+    return pkg_resources.resource_filename("threatspec", os.path.join(*path))
+    
 def copy_pkg_file(src, dest):
     if os.path.isfile(dest):
         raise FileExistsError("File {} already exists.".format(dest))
-    source = pkg_resources.resource_filename("threatspec", src)
+    source = resolve_pkg_file(src)
     shutil.copyfile(source, dest)

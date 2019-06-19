@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='threatspec',
     description='threat modeling as code',
-    version='0.1.11',
+    version='0.1.12',
     license='MIT',
     author='Fraser Scott',
     author_email='fraser.scott@gmail.com',
@@ -16,7 +16,8 @@ setup(
     install_requires=[
         'Click',
         'graphviz',
-        'pyyaml'
+        'pyyaml',
+        'jsonschema'
     ],
     setup_requires = [
         "pytest-runner"
