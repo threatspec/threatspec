@@ -46,6 +46,8 @@ $ threatspec report
 Threatspec will create a number of files:
 
   * ThreatModel.md
+  * ThreatModel.gv
+  * ThreatModel.gv.png
   * threatmodel/threatmodel.json
   * threatmodel/threats.json
   * threatmodel/controls.json
