@@ -48,3 +48,11 @@ Threatspec will create a number of files:
   * threatmodel/threats.json
   * threatmodel/controls.json
   * threatmodel/components.json
+
+## Getting help
+
+For more information, use the command line help flag.
+
+```
+$ threatspec --help
+```
