@@ -63,6 +63,8 @@ def write_yaml(data, *path):
         fh.write(yaml.dump(data))
 
 def validate_yaml_file(file_path, schema_file):
+    if not os.path.isfile(file_path):
+        return (True, None)
     schema_path = resolve_pkg_file(schema_file)
     try:
         jsonschema.validate(read_yaml(file_path), read_yaml(schema_path))
