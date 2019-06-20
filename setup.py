@@ -10,7 +10,7 @@ setup(
     name='threatspec',
     description='threat modeling as code',
     long_description=long_description,
-    long_description_content_type='text/markdown'
+    long_description_content_type='text/markdown',
     version='0.2.2',
     license='MIT',
     author='Fraser Scott',
