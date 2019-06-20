@@ -188,7 +188,7 @@ class ThreatSpecApp():
             sys.exit(0)
 
         config_file = data.abs_path(data.cwd(), "threatspec.yaml")
-        logger.debug("Validating {}}".format(config_file))
+        logger.debug("Validating {}".format(config_file))
         (valid, error) = data.validate_yaml_file(config_file, os.path.join("data", "config_schema.json"))
         if not valid:
             logger.error("Couldn't validate the configation file {}: {}".format(config_file, error))
