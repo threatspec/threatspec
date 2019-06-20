@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Config",
+  "type": "object",
+  "properties": {
+    "project": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/definitions/name" },
+        "description": { "$ref": "#/definitions/description" }
+      },
+      "required": ["name", "description"],
+    },
+    "paths": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/path" }
+    }
+  },
+  "required": ["project", "paths"],
+  "definitions": {
+    "path": {
+      "type": ["string", "object"],
+      "properties": {
+        "path": { "type": "string" },
+        "ignore": { "type": ["string", "array"], "items": { "type": "string" } }
+      }
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  }
+}

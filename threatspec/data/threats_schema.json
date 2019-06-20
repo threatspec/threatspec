@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Threats",
+  "type": "object",
+  "properties": {
+    "threats": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^#[a-z0-9_]+$"
+      },
+      "patternProperties": {
+        "": { "$ref": "#/definitions/threat" }
+      }
+    }
+  },
+  "required": ["threats"],
+  "definitions": {
+    "threat": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "run_id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "run_id", "name", "description"]
+    }
+  }
+}

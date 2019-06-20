@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Threats",
+  "type": "object",
+  "properties": {
+    "mitigations": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/mitigation" }
+    },
+    "acceptances": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/acceptance" }
+    },
+    "exposures": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/exposure" }
+    },
+    "transfers": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/transfer" }
+    },
+    "connections": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/connection" }
+    },
+    "reviews": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/review" }
+    },
+    "tests": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/test" }
+    },
+    "run_id": { "type": "string" }
+  },
+  "required": ["mitigations", "exposures", "acceptances", "transfers", "connections", "reviews", "tests", "run_id"],
+  "definitions": {
+    "id": {
+      "type": "string",
+      "pattern": "^#[a-z0-9_]+$"
+    },
+    "mitigation": {
+      "type": "object",
+      "properties": {
+        "control": { "$ref": "#/definitions/id" },
+        "threat": { "$ref": "#/definitions/id" },
+        "component": { "$ref": "#/definitions/id" },
+        "source": { "$ref": "#/definitions/source" }
+      },
+      "required": ["control", "threat", "component", "source"]
+    },
+    "acceptance": {
+      "type": "object",
+      "properties": {
+        "threat": { "$ref": "#/definitions/id" },
+        "component": { "$ref": "#/definitions/id" },
+        "details": { "type": "string" },
+        "source": { "$ref": "#/definitions/source" }
+      }
+      "required": ["threat", "component", "details", "source"]
+    },
+    "transfer": {
+      "type": "object",
+      "properties": {
+        "threat": { "$ref": "#/definitions/id" },
+        "source_component": { "$ref": "#/definitions/id" },
+        "destination_component": { "$ref": "#/definitions/id" },
+        "details": { "type": "string" },
+        "source": { "$ref": "#/definitions/source" }
+      },
+      "required": ["threat", "source_component", "destination_component", "details", "source"]
+    },
+    "exposure": {
+      "type": "object",
+      "properties": {
+        "threat": { "$ref": "#/definitions/id" },
+        "component": { "$ref": "#/definitions/id" },
+        "details": { "type": "string" },
+        "source": { "$ref": "#/definitions/source" }
+      },
+      "required": ["threat", "component", "details", "source"]
+    },
+    "connection": {
+      "type": "object",
+      "properties": {
+        "source_component": { "$ref": "#/definitions/id" },
+        "destination_component": { "$ref": "#/definitions/id" },
+        "direction": { "type": "string" },
+        "details": { "type": "string" },
+        "source": { "$ref": "#/definitions/source" }
+      },
+      "required": ["source_component", "destination_component", "direction", "details", "source"]
+    },
+    "review": {
+      "type": "object",
+      "properties": {
+        "component": { "$ref": "#/definitions/id" },
+        "details": { "type": "string" },
+        "source": { "$ref": "#/definitions/source" }
+      },
+      "required": ["component", "details", "source"]
+    },
+    "test": {
+      "type": "object",
+      "properties": {
+        "component": { "$ref": "#/definitions/id" },
+        "control": { "$ref": "#/definitions/id" },
+        "source": { "$ref": "#/definitions/source" }
+      },
+      "required": ["component", "control", "source"]
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "annotation": { "type": "string" },
+        "code": { "type": "string" },
+        "filename": { "type": "string" },
+        "line": { "type": "integer" }
+      },
+      "required": ["annotation", "code", "filename", "line"]
+    }
+  }
+}
