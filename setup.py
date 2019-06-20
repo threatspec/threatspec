@@ -11,7 +11,7 @@ setup(
     description='threat modeling as code',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    version='0.2.6',
+    version='0.2.7',
     license='MIT',
     author='Fraser Scott',
     author_email='fraser.scott@gmail.com',

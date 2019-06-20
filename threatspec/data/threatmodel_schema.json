@@ -56,7 +56,7 @@
         "component": { "$ref": "#/definitions/id" },
         "details": { "type": "string" },
         "source": { "$ref": "#/definitions/source" }
-      }
+      },
       "required": ["threat", "component", "details", "source"]
     },
     "transfer": {
