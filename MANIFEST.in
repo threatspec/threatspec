@@ -1,5 +1,1 @@
-include threatspec/data/default_config.yaml
-include threatspec/data/config_schema.yaml
-include threatspec/data/threats_schema.yaml
-include threatspec/data/controls_schema.yaml
-include threatspec/data/components_schema.yaml
+include threatspec/data/*
