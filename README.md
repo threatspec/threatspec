@@ -1,6 +1,9 @@
 # threatspec
 
 [![Build Status](https://travis-ci.org/threatspec/threatspec.svg?branch=master)](https://travis-ci.org/threatspec/threatspec)
+[![PyPI version fury.io](https://badge.fury.io/py/ansicolortags.svg)](https://pypi.python.org/pypi/ansicolortags/)
+[![PyPI license](https://img.shields.io/pypi/l/ansicolortags.svg)](https://pypi.python.org/pypi/ansicolortags/)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/ansicolortags.svg)](https://pypi.python.org/pypi/ansicolortags/)
 
 ## Getting started
 
