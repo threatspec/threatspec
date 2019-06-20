@@ -47,10 +47,10 @@ paths:                                 # Paths to process. If a threatspec.yaml 
 ```
 // @accepts arbitrary file writes to WebApp:FileSystem with filename restrictions
 // @mitigates WebApp:FileSystem against unauthorised access with strict file permissions
-// func (p *Page) save() error {
-//     filename := p.Title + ".txt"
-//     return ioutil.WriteFile(filename, p.Body, 0600)
-// }
+func (p *Page) save() error {
+    filename := p.Title + ".txt"
+    return ioutil.WriteFile(filename, p.Body, 0600)
+}
 ```
 
 ### Step 4 - Run threatspec against your source code
