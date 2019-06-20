@@ -23,9 +23,26 @@ You'll also need to install [Graphviz](https://www.graphviz.org/) for the report
 $ threatspec init
 ```
 
-You can edit the `threatspec.yaml` configuration file.
+You can configure threatspec by editing the `threatspec.yaml` configuration file which looks something like this:
 
-### Step 4 - Annotate your source code with security concerns, concepts or actions
+```
+# This file contains default configuration for a threatspec-enabled repository
+# Warning: If you delete this file, threatspec will treat this directory as a normal source path if referenced by other threatspec.yaml files.
+
+project:
+  name: "threatspec project"           # Name of your project. This might be you application name or a friendly name for the code repository.
+  description: "A threatspec project." # A description of the project. This will be used in the markdown report as well as the name.
+paths:                                 # Paths to process. If a threatspec.yaml file exists, library data source paths are loaded recursively.
+  - './'                               # Parse source files in the current directory by default.
+# - 'path/to/repo1'                    # You can refer to other threatspec repositories and respective threatspec.yaml files are loaded.
+# - 'path/to/repo2'                    # ... and you can do this as much as you like
+# - 'path/to/source/file.go'           # You can directly reference source code files and directories
+# - path: 'path/to/node_source         # You can also provide ignore paths for a path by providing a dictionary
+#   ignore:                            # Any sub-paths defined in this arrary are ignored as source files within the path are recursively parsed
+#     - 'node_modules'
+```
+
+### Step 3 - Annotate your source code with security concerns, concepts or actions
 
 ```
 // @accepts arbitrary file writes to WebApp:FileSystem with filename restrictions
@@ -36,13 +53,13 @@ You can edit the `threatspec.yaml` configuration file.
 // }
 ```
 
-### Step 3 - Run threatspec against your source code
+### Step 4 - Run threatspec against your source code
 
 ```
 $ threatspec run
 ```
 
-### Step 4 - Generate the threat model report
+### Step 5 - Generate the threat model report
 
 ```
 $ threatspec report
