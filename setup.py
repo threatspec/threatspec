@@ -1,14 +1,22 @@
 from setuptools import setup, find_packages
 
+# read the contents of your README file
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+    
 setup(
     name='threatspec',
     description='threat modeling as code',
-    version='0.2.1',
+    long_description=long_description,
+    long_description_content_type='text/markdown'
+    version='0.2.2',
     license='MIT',
     author='Fraser Scott',
     author_email='fraser.scott@gmail.com',
     url='https://github.com/threatspec/threatspec',
-    download_url='https://github.com/threatspec/threatspec/archive/v0.2.1-alpha.tar.gz',
+    download_url='https://github.com/threatspec/threatspec/archive/v0.2.2-alpha.tar.gz',
     keywords=['threat modeling', 'cyber security', 'appsec'],
     packages=find_packages(),
     include_package_data=True,
