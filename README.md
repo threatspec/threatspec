@@ -77,7 +77,7 @@ Threatspec will create a number of files:
 
 ## Example report
 
-![Example report](doc/report.png)
+<img src="https://github.com/threatspec/threatspec/raw/master/doc/report.png" width="300">
 
 See https://github.com/threatspec/threatspec_example_report.
 
