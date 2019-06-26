@@ -79,6 +79,8 @@ Threatspec will create a number of files:
 
 ![Example report](doc/report.png)
 
+See https://github.com/threatspec/threatspec_example_report.
+
 ## Getting help
 
 For more information, use the command line help flag.
