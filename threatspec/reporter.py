@@ -132,7 +132,7 @@ class MarkdownReporter(Reporter):
         self.report.add_paragraph(self.project.description)
 
         self.report.add_h1("Diagram")
-        self.report.add_image("Diagram", "ThreatModel.png", "Threat Model Diagram")
+        self.report.add_image("Diagram", "ThreatModel.gv.png", "Threat Model Diagram")
 
         # Tests
         tests_by_component_control = {}
