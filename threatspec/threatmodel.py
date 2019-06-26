@@ -410,5 +410,6 @@ class ThreatModel(Library):
             "acceptances": [x.as_dict() for x in self.acceptances],
             "connections": [x.as_dict() for x in self.connections],
             "reviews": [x.as_dict() for x in self.reviews],
-            "tests": [x.as_dict() for x in self.tests]
+            "tests": [x.as_dict() for x in self.tests],
+            "run_id": self.run_id
         }
