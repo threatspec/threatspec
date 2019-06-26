@@ -75,6 +75,10 @@ Threatspec will create a number of files:
   * threatmodel/controls.json
   * threatmodel/components.json
 
+## Example report
+
+![Example report](doc/report.png)
+
 ## Getting help
 
 For more information, use the command line help flag.
