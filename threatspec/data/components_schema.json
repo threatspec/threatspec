@@ -23,7 +23,10 @@
         "description": { "type": "string" },
         "paths": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
         }
       },
       "required": ["id", "run_id", "name", "description", "paths"]

@@ -29,8 +29,10 @@ class ThreatSpecApp():
     def parse_source(self, paths, parent):
         for config_path in paths:
             abs_path = data.abs_path(parent, config_path.path)
+            logger.debug("Processing source path {}".format(abs_path))
             if abs_path in self.loaded_source_paths:
-                continue # Skip as we have already processed this path before
+                logger.debug("Skipping source path {} as it has already been processed".format(abs_path))
+                continue
             self.loaded_source_paths[abs_path] = True # We've seen it now
             if data.is_threatspec_path(abs_path):
                 logger.debug("Found threatspec.yaml, loading source configuration from {}".format(abs_path))
@@ -45,23 +47,23 @@ class ThreatSpecApp():
          
                 new_config.load(data.read_yaml(new_config_file))
                 self.parse_source(new_config.paths, abs_path)
-            else:
-                for path in data.recurse_path(abs_path):
-                    if data.path_ignored(path, config_path.ignore):
-                        logger.debug("Skipping ignored file path: {}".format(path))
-                        continue
-                    logger.debug("Parsing source files in path {}".format(path))
-                    if os.path.isfile(path):
+
+            for path in data.recurse_path(abs_path):
+                if data.path_ignored(path, config_path.ignore):
+                    logger.debug("Skipping ignored file path: {}".format(path))
+                    continue
+                logger.debug("Parsing source files in path {}".format(path))
+                if os.path.isfile(path):
+                    self.parser = parser.SourceFileParser(self.threatmodel)
+                    self.parser.parse_file(path)
+                    """
+                    if os.path.splitext(filename)[1].lower() in [".json", ".yaml"]:
+                        self.parser = parser.YamlFileParser(self.threatmodel)
+                        self.parser.parse_file(filename)
+                    else:
                         self.parser = parser.SourceFileParser(self.threatmodel)
-                        self.parser.parse_file(path)
-                        """
-                        if os.path.splitext(filename)[1].lower() in [".json", ".yaml"]:
-                            self.parser = parser.YamlFileParser(self.threatmodel)
-                            self.parser.parse_file(filename)
-                        else:
-                            self.parser = parser.SourceFileParser(self.threatmodel)
-                            self.parser.parse_file(filename)
-                        """
+                        self.parser.parse_file(filename)
+                    """
 
     def load_threat_model(self, path):
         filename = data.abs_path(path, "threatmodel", "threatmodel.json")
@@ -81,7 +83,7 @@ class ThreatSpecApp():
     def save_threat_model(self):
         data.write_json_pretty(self.threatmodel.save(), data.cwd(), "threatmodel", "threatmodel.json") # TODO: Unhardcode
     
-    def load_threat_library(self, path):
+    def load_threat_library(self, path, local=False):
         filename = data.abs_path(path, "threatmodel", "threats.json")
         
         logger.debug("Validating {}".format(filename))
@@ -91,12 +93,16 @@ class ThreatSpecApp():
             sys.exit(0)
             
         try:
-            self.threat_library.load(data.read_json(filename))
+            if local:
+                run_id = self.threatmodel.run_id
+            else:
+                run_id = None
+            self.threat_library.load(data.read_json(filename), run_id)
             logger.debug("Loaded threat library from {}".format(filename))
         except FileNotFoundError:
             pass
 
-    def load_control_library(self, path):
+    def load_control_library(self, path, local=False):
         filename = data.abs_path(path, "threatmodel", "controls.json")
 
         logger.debug("Validating {}".format(filename))
@@ -106,12 +112,16 @@ class ThreatSpecApp():
             sys.exit(0)
             
         try:
-            self.control_library.load(data.read_json(filename))
+            if local:
+                run_id = self.threatmodel.run_id
+            else:
+                run_id = None
+            self.control_library.load(data.read_json(filename), run_id)
             logger.debug("Loaded control library from path {}".format(filename))
         except FileNotFoundError:
             pass
 
-    def load_component_library(self, path):
+    def load_component_library(self, path, local=False):
         filename = data.abs_path(path, "threatmodel", "components.json")
         
         logger.debug("Validating {}".format(filename))
@@ -121,7 +131,11 @@ class ThreatSpecApp():
             sys.exit(0)
             
         try:
-            self.component_library.load(data.read_json(filename))
+            if local:
+                run_id = self.threatmodel.run_id
+            else:
+                run_id = None
+            self.component_library.load(data.read_json(filename), run_id)
             logger.debug("Loaded component library from path {}".format(filename))
         except FileNotFoundError:
             pass
@@ -129,7 +143,10 @@ class ThreatSpecApp():
     def load_threat_library_data_from_path(self, paths, parent):
         for config_path in paths:
             abs_path = data.abs_path(parent, config_path.path)
+            if abs_path == data.cwd():
+                continue # Skip current directory as this was handled earlier
             if abs_path in self.loaded_library_paths:
+                logger.debug("Skipping library path {} as we've processed it before".format(abs_path))
                 continue # Skip as we've seen this path before
             self.loaded_library_paths[abs_path] = True # We've seen it now
             if data.is_threatspec_path(abs_path):
@@ -140,7 +157,7 @@ class ThreatSpecApp():
                 
                 new_config_file = data.abs_path(abs_path, "threatspec.yaml")
                 new_config = config.Config()
-                
+
                 logger.debug("Validating {}".format(new_config_file))
                 (valid, error) = data.validate_yaml_file(new_config_file, os.path.join("data", "config_schema.json"))
                 if not valid:
@@ -151,6 +168,9 @@ class ThreatSpecApp():
                 self.load_threat_library_data_from_path(new_config.paths, abs_path)
 
     def load_threat_library_data(self):
+        self.load_threat_library(data.cwd(), local=True)
+        self.load_control_library(data.cwd(), local=True)
+        self.load_component_library(data.cwd(), local=True)
         self.load_threat_library_data_from_path(self.config.paths, data.cwd())
 
     def save_threat_library_data(self):
@@ -165,6 +185,7 @@ class ThreatSpecApp():
         self.load_threat_model_data_from_path(data.cwd())
         for path in self.config.paths:
             if os.path.dirname(path.path) == data.cwd():
+                logger.debug("Current directory found, skipping as already processed")
                 continue
             base_path = data.glob_to_root(path.path)
             if data.is_threatspec_path(base_path):
@@ -221,7 +242,6 @@ repository by editing the following file:
             logger.error("Couldn't validate the configation file {}: {}".format("threatspec.yaml", error))
             sys.exit(0)
         self.config.load(data.read_yaml(config_path))
-
         self.load_threat_library_data()
         self.parse_source(self.config.paths, data.cwd())
         self.save_threat_library_data()

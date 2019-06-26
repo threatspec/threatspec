@@ -1,6 +1,5 @@
 import re, uuid
 from threatspec import data, threatmodel, config
-from pprint import pprint
 from graphviz import Digraph
 
 class Reporter():

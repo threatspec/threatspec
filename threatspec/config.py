@@ -6,7 +6,7 @@ class Project():
         self.name = name
         self.description = description
 
-class Path:
+class Path():
     def __init__(self, obj):
         self.path = ""
         self.ignore = ""
@@ -25,10 +25,10 @@ class Path:
                 else:
                     raise TypeError("ignore must be a string or list")
 
-class Config:
-    def __init__(self, project: Project = Project(), paths: List[Path] = []):
-        self.project = project
-        self.paths = paths
+class Config():
+    def __init__(self):
+        self.project = None
+        self.paths = []
 
     def load(self, data):
         self.project = Project(data["project"]["name"], data["project"]["description"])

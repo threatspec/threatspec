@@ -1,4 +1,3 @@
-from pprint import pprint
 from typing import List, Dict
 import uuid, re
 
@@ -73,9 +72,9 @@ class Mitigation():
         
     def as_dict(self):
         return {
-            "control": self.control.as_dict(),
-            "threat": self.threat.as_dict(),
-            "component": self.component.as_dict(),
+            "control": self.control,
+            "threat": self.threat,
+            "component": self.component,
             "source": self.source.as_dict()
         }
 
@@ -88,8 +87,8 @@ class Acceptance():
         
     def as_dict(self):
         return {
-            "threat": self.threat.as_dict(),
-            "component": self.component.as_dict(),
+            "threat": self.threat,
+            "component": self.component,
             "details": self.details,
             "source": self.source.as_dict()
         }
@@ -104,9 +103,9 @@ class Transfer():
         
     def as_dict(self):
         return {
-            "threat": self.threat.as_dict(),
-            "source_component": self.source_component.as_dict(),
-            "destination_component": self.destination_component.as_dict(),
+            "threat": self.threat,
+            "source_component": self.source_component,
+            "destination_component": self.destination_component,
             "details": self.details,
             "source": self.source.as_dict()
         }
@@ -120,8 +119,8 @@ class Exposure():
     
     def as_dict(self):
         return {
-            "threat": self.threat.as_dict(),
-            "component": self.component.as_dict(),
+            "threat": self.threat,
+            "component": self.component,
             "details": self.details,
             "source": self.source.as_dict()
         }
@@ -136,8 +135,8 @@ class Connection():
         
     def as_dict(self):
         return {
-            "source_component": self.source_component.as_dict(),
-            "destination_component": self.destination_component.as_dict(),
+            "source_component": self.source_component,
+            "destination_component": self.destination_component,
             "direction": self.direction,
             "details": self.details,
             "source": self.source.as_dict()
@@ -151,7 +150,7 @@ class Review():
 
     def as_dict(self):
         return {
-            "component": self.component.as_dict(),
+            "component": self.component,
             "details": self.details,
             "source": self.source.as_dict()
         }
@@ -164,8 +163,8 @@ class Test():
         
     def as_dict(self):
         return {
-            "component": self.component.as_dict(),
-            "control": self.control.as_dict(),
+            "component": self.component,
+            "control": self.control,
             "source": self.source.as_dict()
         }
 
@@ -219,8 +218,10 @@ class ThreatLibrary(Library):
             self.threats[data["id"]] = Threat(data["id"], run_id, data["name"], data["description"]) # TODO: Handle id clash
         return data["id"]
 
-    def load(self, data):
+    def load(self, data, run_id=None):
         for id, threat in data["threats"].items():
+            if run_id:
+                threat["run_id"] = run_id # Override the run ID if provided
             if id not in self.threats: # TODO Handle id clash
                 self.threats[id] = Threat(id, threat["run_id"], threat["name"], threat["description"])
                 
@@ -248,8 +249,10 @@ class ControlLibrary(Library):
             self.controls[data["id"]] = Control(data["id"], run_id, data["name"], data["description"])
         return data["id"]
 
-    def load(self, data):
+    def load(self, data, run_id=None):
         for id, control in data["controls"].items():
+            if run_id:
+                control["run_id"] = run_id # Override the run ID if provided
             if id not in self.controls: # TODO Handle id clash
                 self.controls[id] = Control(id, control["run_id"], control["name"], control["description"])
     
@@ -282,8 +285,10 @@ class ComponentLibrary(Library):
             self.components[data["id"]].paths.append(path)
         return data["id"]
 
-    def load(self, data):
+    def load(self, data, run_id=None):
         for id, component in data["components"].items():
+            if run_id:
+                component["run_id"] = run_id # Override the run ID if provided
             if id not in self.components: # TODO Handle id clash
                 self.components[id] = Component(id, component["run_id"], component["name"], component["description"], component["paths"])
                 
@@ -399,11 +404,11 @@ class ThreatModel(Library):
             
     def save(self):
         return {
-            "mitigations": self.mitigations,
-            "exposures": self.exposures,
-            "transfers": self.transfers,
-            "acceptances": self.acceptances,
-            "connections": self.connections,
-            "reviews": self.reviews,
-            "tests": self.tests
+            "mitigations": [x.as_dict() for x in self.mitigations],
+            "exposures": [x.as_dict() for x in self.exposures],
+            "transfers": [x.as_dict() for x in self.transfers],
+            "acceptances": [x.as_dict() for x in self.acceptances],
+            "connections": [x.as_dict() for x in self.connections],
+            "reviews": [x.as_dict() for x in self.reviews],
+            "tests": [x.as_dict() for x in self.tests]
         }

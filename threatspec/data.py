@@ -15,7 +15,7 @@ def glob_to_root(path):
 def recurse_path(path):
     if os.path.isfile(path):
         return [path]
-    elif os.path.isdir(path):
+    else:
         if "*" in path:
             return glob.iglob(path)
         else:
