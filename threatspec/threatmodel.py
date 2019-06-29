@@ -171,19 +171,23 @@ class Test():
 class Library():
     def parse(self, name):
         # Don't parse if all we have is an ID
-        m = re.match(r'^#[a-z0-9_]+$', name, re.M)
+        m = re.match(r'^#[a-zA-Z0-9_]+$', name, re.M)
         if m:
-            return name
+            return {"id": name, "name": "", "description": ""}
 
         # TODO - write tests then handle special global ids #client and #server
         m = re.match(r'(?P<name>[^()]+)(?:(?P<id>\(.*?\))(?P<description>.*)?)?', name, re.M | re.I)
         if m:
             match = m.groupdict()
+            
+            match["name"] = match["name"].strip()
 
             if match["name"].startswith("#"):
                 match["id"] = match["name"]
 
-            if not match["id"]:
+            if match["id"]:
+                match["id"] = match["id"].strip()
+            else:
                 if match["name"].endswith("/"): # Dirty hack
                     id_body = match["name"]+"root"
                 else:
@@ -200,7 +204,9 @@ class Library():
                     id_body = match["id"]
                 match["id"] = "#" + re.sub('[^a-z0-9_]+', '_', id_body.strip().lower().replace('-','')).strip('_')
 
-            if not match["description"]:
+            if match["description"]:
+                match["description"] = match["description"].strip()
+            else:
                 match["description"] = ""
             return match
         else:

@@ -39,7 +39,6 @@ class ThreatSpecApp():
                 new_config = config.Config()
                 
                 new_config_file = data.abs_path(abs_path, "threatspec.yaml")
-                logger.debug("Validating configuration")
                 (valid, error) = data.validate_yaml_file(new_config_file, os.path.join("data", "config_schema.json"))
                 if not valid:
                     logger.error("Couldn't validate the configation file {}: {}".format(abs_path, error))
@@ -236,7 +235,6 @@ repository by editing the following file:
             
         config_path = data.abs_path(data.cwd(), "threatspec.yaml")
         
-        logger.debug("Validating configuration")
         (valid, error) = data.validate_yaml_file(config_path, os.path.join("data", "config_schema.json"))
         if not valid:
             logger.error("Couldn't validate the configation file {}: {}".format("threatspec.yaml", error))
