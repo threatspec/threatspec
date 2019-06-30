@@ -1,6 +1,8 @@
-import re, uuid
+import re
+import uuid
 from threatspec import data, threatmodel, config
 from graphviz import Digraph
+
 
 class Reporter():
     def __init__(self, project: config.Project, threatmodel: threatmodel.ThreatModel):
@@ -16,28 +18,28 @@ class Reporter():
     def to_id(self, text):
         if text.endswith("/"):
             text += "root"
-        return "#" + re.sub('[^a-z0-9_]+', '_', text.strip().lower().replace('-','')).strip('_')
+        return "#" + re.sub('[^a-z0-9_]+', '_', text.strip().lower().replace('-', '')).strip('_')
 
     def parse_component_paths(self):
         self.components = {}
         self.component_pairs = {}
 
         for id, component in self.threatmodel.component_library.components.items():
-            self.components[id] = component.name.split(":")[-1] # Dirty hack
+            self.components[id] = component.name.split(":")[-1]  # Dirty hack
             for path in component.paths:
                 if not path:
                     continue
 
                 i = 0
-                while i < len(path)-1:
+                while i < len(path) - 1:
                     source_component = path[i]
                     source_component_id = self.to_id(source_component)
-                    destination_component = path[i+1]
+                    destination_component = path[i + 1]
                     destination_component_id = self.to_id(destination_component)
 
-                    if not source_component_id in self.components:
+                    if source_component_id not in self.components:
                         self.components[source_component_id] = source_component
-                    if not destination_component_id in self.components:
+                    if destination_component_id not in self.components:
                         self.components[destination_component] = destination_component
 
                     if source_component_id not in self.component_pairs:
@@ -45,7 +47,7 @@ class Reporter():
                     if destination_component_id not in self.component_pairs[source_component_id]:
                         self.component_pairs[source_component_id][destination_component_id] = 1
                     else:
-                        self.component_pairs[source_component_id][destination_component_id] +=1
+                        self.component_pairs[source_component_id][destination_component_id] += 1
                     i += 1
             
                 last_component = path[-1]
@@ -72,6 +74,7 @@ class MarkdownTable():
 
     def add_row(self, row):
         self.rows.append(row)
+
 
 class Markdown():
     def __init__(self):
@@ -102,7 +105,7 @@ class Markdown():
 
 class Graph():
     def __init__(self, title):
-        self.dot = Digraph(comment=title, # TODO: Unhardcode
+        self.dot = Digraph(comment=title,  # TODO: Unhardcode
             engine='dot',
             format='png',
             graph_attr={
@@ -121,6 +124,7 @@ class Graph():
             }
         )
 
+
 class MarkdownReporter(Reporter):
         
     def generate(self):
@@ -128,7 +132,7 @@ class MarkdownReporter(Reporter):
 
         self.graph = Graph(self.project.name)
         self.report = Markdown()
-        self.report.add_h1(self.project.name) # TODO: Unhardcode
+        self.report.add_h1(self.project.name)  # TODO: Unhardcode
         self.report.add_paragraph(self.project.description)
 
         self.report.add_h1("Diagram")
@@ -175,8 +179,6 @@ class MarkdownReporter(Reporter):
             component = self.threatmodel.component_library.components[component_id]
 
             self.graph.dot.node(exposure_id, "Exposure\n\n{}".format(exposure.details), color='#c0392b')
-            #dot.edge(threat["name"], component["name"], color='#c0392b', concentrate='true')
-            #dot.edge(exposure["exposure"], threat["name"], color='#c0392b', concentrate='true')
             self.graph.dot.edge(exposure_id, component_id, color='#c0392b', concentrate='true')
             self.graph.dot.edge(threat_id, exposure_id, color='#c0392b', concentrate='true')
 
@@ -228,16 +230,12 @@ class MarkdownReporter(Reporter):
 
             self.graph.dot.node(transfer_id, "Transfer\n\n{}".format(transfer.details), color='#8e44ad')
 
-            #dot.edge(source["name"], threat["name"], color='#f39c12', concentrate='true')
-            #dot.edge(threat["name"], dest["name"], color='#e74c3c', concentrate='true')
-            #dot.edge(transfer["transfer"], threat["name"], color='#8e44ad', concentrate='true')
-            
             self.graph.dot.edge(source_id, transfer_id, color='#f39c12', concentrate='true')
             self.graph.dot.edge(transfer_id, dest_id, color='#e74c3c', concentrate='true')
             self.graph.dot.edge(threat_id, transfer_id, color='#8e44ad', concentrate='true')
 
-            table.add_row(
-                ["Transfer",
+            table.add_row([
+                "Transfer",
                 "{} (from {})".format(dest.name, source.name),
                 threat.name,
                 transfer.details,
@@ -257,9 +255,6 @@ class MarkdownReporter(Reporter):
             control_id = mitigation.control
             control = self.threatmodel.control_library.controls[control_id]
 
-            #dot.edge(threat["name"], component["name"], color='#f39c12', concentrate='true')
-            #dot.edge(control["name"], threat["name"], color='#27ae60', concentrate='true')
-            
             self.graph.dot.edge(control_id, component_id, color='#27ae60', concentrate='true')
             self.graph.dot.edge(threat_id, control_id, color='#f39c12', concentrate='true')
 

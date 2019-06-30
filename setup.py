@@ -5,7 +5,7 @@ from os import path
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
-    
+
 setup(
     name='threatspec',
     description='threat modeling as code',
@@ -27,10 +27,10 @@ setup(
         'pyyaml',
         'jsonschema'
     ],
-    setup_requires = [
+    setup_requires=[
         "pytest-runner"
     ],
-    tests_require = [
+    tests_require=[
         'pytest'
     ],
     entry_points='''

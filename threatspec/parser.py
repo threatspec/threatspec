@@ -1,8 +1,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import yaml, re
-from threatspec.threatmodel import ThreatModel
+import re
+
 
 class Parser():
     def __init__(self, threatmodel):
@@ -29,10 +29,9 @@ class Parser():
         self.patterns["review"] = r'@review (?P<component>.*?) (?P<details>.*)'
         self.patterns["tests"] = r'@tests (?P<control>.*?) for (?P<component>.*)'
 
-
     def parse_annotation(self, annotation):
         for action in self.patterns.keys():
-            if annotation.startswith("@"+action):
+            if annotation.startswith("@" + action):
                 data = {"action": action}
                 pattern = self.patterns[action]
                 m = re.match(pattern, annotation, re.M | re.I)
@@ -52,6 +51,7 @@ class Parser():
                 return True
         return False
 
+
 class SourceFileParser(Parser):
     def parse_file(self, filename):
         try:
@@ -70,7 +70,7 @@ class SourceFileParser(Parser):
                     next_line = lines[next_line_index].strip()
                     if not self.is_threatspec_line(next_line):
                         logger.debug("Parsing line {}".format(current_line))
-                        (data, source) = self.parse_line(current_line, next_line, filename,  current_line_index+1)
+                        (data, source) = self.parse_line(current_line, next_line, filename, current_line_index + 1)
                         if data:
                             self.run_action(data, source)
                         break
@@ -80,7 +80,7 @@ class SourceFileParser(Parser):
     def parse_comment_line(self, line):
         annotation = ""
         code = ""
-        for commment_char in self.comment_chars: # TODO: Support files without comments
+        for commment_char in self.comment_chars:  # TODO: Support files without comments
             if commment_char in line:
                 parts = line.split(commment_char)
                 annotation = parts[-1].strip()
@@ -105,6 +105,7 @@ class SourceFileParser(Parser):
             "line": line_no
         }
         return (data, source)
+
 
 """
 class YamlFileParser(Parser):

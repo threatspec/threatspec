@@ -1,10 +1,8 @@
-from typing import List, Dict, Any
-from threatspec import data
-
 class Project():
     def __init__(self, name: str = "", description: str = ""):
         self.name = name
         self.description = description
+
 
 class Path():
     def __init__(self, obj):
@@ -24,6 +22,7 @@ class Path():
                     self.ignore = obj["ignore"]
                 else:
                     raise TypeError("ignore must be a string or list")
+
 
 class Config():
     def __init__(self):
