@@ -10,7 +10,7 @@ class Reporter():
         self.threatmodel = threatmodel
 
         self.components = {}
-        self.component_pairs: {}
+        self.component_pairs = {}
 
     def random_id(self):
         return uuid.uuid4().hex
