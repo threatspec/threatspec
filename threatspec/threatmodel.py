@@ -181,7 +181,7 @@ class Test():
 
 
 class Library():
-    def parse(self, name):
+    def parse_name(self, name):
         # Don't parse if all we have is an ID
         m = re.match(r'^#[a-zA-Z0-9_]+$', name, re.M)
         if m:
@@ -230,7 +230,7 @@ class ThreatLibrary(Library):
         self.threats = threats
 
     def add_threat(self, name=None, run_id=None):
-        data = self.parse(name)
+        data = self.parse_name(name)
         if isinstance(data, str):
             return data
         if not data["id"] in self.threats:
@@ -262,7 +262,7 @@ class ControlLibrary(Library):
         self.controls = controls
 
     def add_control(self, name=None, run_id=None):
-        data = self.parse(name)
+        data = self.parse_name(name)
         if isinstance(data, str):
             return data
         if not data["id"] in self.controls:
@@ -294,7 +294,7 @@ class ComponentLibrary(Library):
         self.components = components
 
     def add_component(self, name=None, run_id=None):
-        data = self.parse(name)
+        data = self.parse_(name)
         if isinstance(data, str):
             return data
 
