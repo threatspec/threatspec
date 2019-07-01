@@ -294,7 +294,7 @@ class ComponentLibrary(Library):
         self.components = components
 
     def add_component(self, name=None, run_id=None):
-        data = self.parse_(name)
+        data = self.parse_name(name)
         if isinstance(data, str):
             return data
 
