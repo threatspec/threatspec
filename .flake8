@@ -1,5 +1,5 @@
 [flake8]
-ignore = E501,E402,W293,E128
+ignore = E501,E402,W293,E128,E241,E201,E202
 
 exclude =
     tests,

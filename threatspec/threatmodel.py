@@ -19,7 +19,7 @@ class Source():
 
 
 class Threat():
-    def __init__(self, id: str, run_id: str, name: str, description: str = ""):
+    def __init__(self, id: str, run_id: str, name: str, description: str):
         self.id = id
         self.run_id = run_id
         self.name = name
@@ -35,7 +35,7 @@ class Threat():
 
 
 class Control():
-    def __init__(self, id: str, run_id: str, name: str, description: str = ""):
+    def __init__(self, id: str, run_id: str, name: str, description: str):
         self.id = id
         self.run_id = run_id
         self.name = name
@@ -51,7 +51,7 @@ class Control():
 
 
 class Component():
-    def __init__(self, id: str, run_id: str, name: str, description: str = "", paths: List[str] = []):
+    def __init__(self, id: str, run_id: str, name: str, description: str, paths: List[str]):
         self.id = id
         self.run_id = run_id
         self.name = name
@@ -245,14 +245,11 @@ class ThreatLibrary(Library):
                 self.threats[id] = Threat(id, threat["run_id"], threat["name"], threat["description"])
                 
     def save(self, run_id=None):
-        if not run_id:
-            return [t.as_dict() for t in self.threats]
-            
         data = {"threats": {}}
         for id, threat in self.threats.items():
             if not threat.run_id:
                 continue
-            if threat.run_id == run_id:
+            if not run_id or threat.run_id == run_id:
                 data["threats"][id] = threat.as_dict()
         return data
 
@@ -277,14 +274,11 @@ class ControlLibrary(Library):
                 self.controls[id] = Control(id, control["run_id"], control["name"], control["description"])
     
     def save(self, run_id=None):
-        if not run_id:
-            return [c.as_dict() for c in self.controls]
-        
         data = {"controls": {}}
         for id, control in self.controls.items():
             if not control.run_id:
                 continue
-            if control.run_id == run_id:
+            if not run_id or control.run_id == run_id:
                 data["controls"][id] = control.as_dict()
         return data
 
@@ -298,11 +292,11 @@ class ComponentLibrary(Library):
         if isinstance(data, str):
             return data
 
-        path = data["name"].split(":")[0:-1]  # Ignore the last one as that's the component itself
-
         if not data["id"] in self.components:
-            self.components[data["id"]] = Component(data["id"], run_id, data["name"], data["description"])
-        elif path not in self.components[data["id"]].paths:
+            self.components[data["id"]] = Component(data["id"], run_id, data["name"], data["description"], [])
+
+        path = data["name"].split(":")[0:-1]  # Ignore the last one as that's the component itself
+        if path not in self.components[data["id"]].paths:
             self.components[data["id"]].paths.append(path)
         return data["id"]
 
@@ -314,14 +308,11 @@ class ComponentLibrary(Library):
                 self.components[id] = Component(id, component["run_id"], component["name"], component["description"], component["paths"])
                 
     def save(self, run_id=None):
-        if not run_id:
-            return [c.as_dict() for c in self.components]
-        
         data = {"components": {}}
         for id, component in self.components.items():
             if not component.run_id:
                 continue
-            if component.run_id == run_id:
+            if not run_id or component.run_id == run_id:
                 data["components"][id] = component.as_dict()
         return data
                 

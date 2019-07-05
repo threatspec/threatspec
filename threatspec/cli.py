@@ -124,12 +124,15 @@ def run():
 
 
 @cli.command()
-def report():
+@click.option("--output", "-o", default="markdown", help="Report output format. Available values: text, json, template, markdown (default).")
+@click.option("--file", "-f", help="Output filename name. The default is set by the report mode.")
+@click.option("--template", "-t", help="Template file to load if '--output template' selected.")
+def report(output, file, template):
     """
     Generate the threatspec threat model report.
 
-    This will use Graphviz to generate a visualisation of the threat model, and
-    embed it in a threat model markdown document in the current directory:
+    This will by default use Graphviz to generate a visualisation of the threat model,
+    and embed it in a threat model markdown document in the current directory:
     
     ThreatModel.md
 
@@ -138,7 +141,7 @@ def report():
     """
 
     threatspec = app.ThreatSpecApp()
-    threatspec.report()
+    threatspec.report(output, file, template)
     
 
 if __name__ == '__main__':

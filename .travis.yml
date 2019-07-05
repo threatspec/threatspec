@@ -7,3 +7,5 @@ python:
   - "3.7"
 install: "pip install tox-travis"
 script: "tox"
+before_install:
+  - "sudo apt-get install graphviz"
