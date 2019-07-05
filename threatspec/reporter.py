@@ -1,107 +1,144 @@
-import re
-import uuid
+import logging
+logger = logging.getLogger(__name__)
+
 from threatspec import data, threatmodel, config
+from jinja2 import Environment, FileSystemLoader, PackageLoader
 from graphviz import Digraph
+import os
+import uuid
 
 
-class Reporter():
+def random_id():
+    return uuid.uuid4().hex
+
+
+class DataReporter():
+    
     def __init__(self, project: config.Project, threatmodel: threatmodel.ThreatModel):
         self.project = project
         self.threatmodel = threatmodel
+        self.data = None
+        self.build_report()
 
-        self.components = {}
-        self.component_pairs = {}
-
-    def random_id(self):
-        return uuid.uuid4().hex
-
-    def to_id(self, text):
-        if text.endswith("/"):
-            text += "root"
-        return "#" + re.sub('[^a-z0-9_]+', '_', text.strip().lower().replace('-', '')).strip('_')
-
-    def parse_component_paths(self):
-        self.components = {}
-        self.component_pairs = {}
-
-        for id, component in self.threatmodel.component_library.components.items():
-            self.components[id] = component.name.split(":")[-1]  # Dirty hack
-            for path in component.paths:
-                if not path:
-                    continue
-
-                i = 0
-                while i < len(path) - 1:
-                    source_component = path[i]
-                    source_component_id = self.to_id(source_component)
-                    destination_component = path[i + 1]
-                    destination_component_id = self.to_id(destination_component)
-
-                    if source_component_id not in self.components:
-                        self.components[source_component_id] = source_component
-                    if destination_component_id not in self.components:
-                        self.components[destination_component] = destination_component
-
-                    if source_component_id not in self.component_pairs:
-                        self.component_pairs[source_component_id] = {}
-                    if destination_component_id not in self.component_pairs[source_component_id]:
-                        self.component_pairs[source_component_id][destination_component_id] = 1
-                    else:
-                        self.component_pairs[source_component_id][destination_component_id] += 1
-                    i += 1
+    def build_report(self):
+        threat_library = self.threatmodel.threat_library.save()
+        control_library = self.threatmodel.control_library.save()
+        component_library = self.threatmodel.component_library.save()
+        
+        self.data = {
+            "project": {
+                "name": self.project.name,
+                "description": self.project.description
+            },
+            "threatmodel": self.threatmodel.save(),
+            "threats": {},
+            "controls": {},
+            "components": {}
+        }
+        
+        tests_by_component_control = {}
+        for test in self.data["threatmodel"]["tests"]:
+            component_id = test["component"]
+            control_id = test["control"]
             
-                last_component = path[-1]
-                last_component_id = self.to_id(last_component)
-
-                if last_component_id not in self.components:
-                    self.components[last_component_id] = last_component
+            if component_id in component_library["components"]:
+                test["component"] = component_library["components"][component_id]
+                if component_id not in self.data["components"]:
+                    self.data["components"][component_id] = component_library["components"][component_id]
+            if component_id not in tests_by_component_control:
+                tests_by_component_control[component_id] = {}
+            
+            if control_id in control_library["controls"]:
+                test["control"] = control_library["controls"][control_id]
+                if control_id not in self.data["controls"]:
+                    self.data["controls"][control_id] = control_library["controls"][control_id]
+            if control_id not in tests_by_component_control[component_id]:
+                tests_by_component_control[component_id][control_id] = []
                 
-                if last_component_id not in self.component_pairs:
-                    self.component_pairs[last_component_id] = {}
-                if id not in self.component_pairs[last_component_id]:
-                    self.component_pairs[last_component_id][id] = 1
-                else:
-                    self.component_pairs[last_component_id][id] += 1
+            tests_by_component_control[component_id][control_id].append(test)
+        
+        for key, arr in self.data["threatmodel"].items():
+            if key == "tests":
+                continue  # Tests are processed separately above
+            if isinstance(arr, list):
+                for obj in arr:
+                    if not isinstance(obj, dict):
+                        continue
+                    
+                    if "tests" not in obj:
+                        obj["tests"] = []
+                        
+                    if "threat" in obj:
+                        threat_id = obj["threat"]
+                        if threat_id in threat_library["threats"]:
+                            obj["threat"] = threat_library["threats"][threat_id]
+                            if threat_id not in self.data["threats"]:
+                                self.data["threats"][threat_id] = threat_library["threats"][threat_id]
+
+                    control_id = None
+                    if "control" in obj:
+                        control_id = obj["control"]
+                        if control_id in control_library["controls"]:
+                            obj["control"] = control_library["controls"][control_id]
+                            if control_id not in self.data["controls"]:
+                                self.data["controls"][control_id] = control_library["controls"][control_id]
+                            
+                    for component_key in ["component", "source_component", "destination_component"]:
+                        if component_key in obj:
+                            component_id = obj[component_key]
+                            if component_id in component_library["components"]:
+                                obj[component_key] = component_library["components"][component_id]
+                                if component_id not in self.data["components"]:
+                                    self.data["components"][component_id] = component_library["components"][component_id]
+                                
+                                if component_id in tests_by_component_control and control_id in tests_by_component_control[component_id]:
+                                    obj["tests"] += tests_by_component_control[component_id][control_id]
 
 
-class MarkdownTable():
-    def __init__(self):
-        self.headers = []
-        self.rows = []
-
-    def add_headers(self, headers):
-        self.headers = headers
-
-    def add_row(self, row):
-        self.rows.append(row)
+class Reporter():
+    
+    def __init__(self, data):
+        self.data = data
 
 
-class Markdown():
-    def __init__(self):
-        self.data = ""
+class TemplateReporter(Reporter):
+    def generate(self, filename, template_path):
+        
+        template_dir = os.path.dirname(template_path)
+        template_file = os.path.basename(template_path)
+        
+        template_loader = FileSystemLoader(template_dir)
+        template_env = Environment(loader=template_loader)
+        template = template_env.get_template(template_file)
+        
+        data.write_file(template.render(report=self.data), filename)
 
-    def add_h1(self, text):
-        self.data += "# {}\n\n".format(text)
+        
+class MarkdownReporter(Reporter):
 
-    def add_paragraph(self, text):
-        self.data += "{}\n\n".format(text)
+    def generate(self, filename, image=None):
+        template_loader = PackageLoader('threatspec', 'report_templates')
+        template_env = Environment(loader=template_loader)
+        template = template_env.get_template('default_markdown.md')
 
-    def add_image(self, alt, file, title):
-        self.data += "![{}]({} \"{}\")\n\n".format(alt, file, title)
+        data.write_file(template.render(report=self.data, image=image), filename)
 
-    def add_table(self, table):
-        self.data += "| {} |\n".format(" | ".join(table.headers))
-        self.data += "| {} |\n".format(" | ".join("---" for x in table.headers))
-        for row in table.rows:
-            self.data += "| {} |\n".format(" | ".join(row))
-        self.data += "\n\n"
 
-    def code(self, text):
-        return "`{}`".format(text)
+class JsonReporter(Reporter):
+    
+    def generate(self, filename):
+        data.write_json_pretty(self.data, filename)
 
-    def code_block(self, text):
-        return "```\n{}\n```".format(text)
 
+class TextReporter(Reporter):
+    
+    def generate(self, filename):
+        template_loader = PackageLoader('threatspec', 'report_templates')
+        template_env = Environment(loader=template_loader)
+        template = template_env.get_template('default_text.txt')
+
+        data.write_file(template.render(report=self.data), filename)
+        
 
 class Graph():
     def __init__(self, title):
@@ -125,209 +162,163 @@ class Graph():
         )
 
 
-class MarkdownReporter(Reporter):
+class GraphvizReporter(Reporter):
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.graph = Graph(self.data["project"]["name"])
+        self.nodes = {}
+        self.edges = {}
         
-    def generate(self):
-        self.parse_component_paths()
+        red = "#c0392b"
+        green = "#27ae60"
+        blue = "#3498db"
+        orange = "#f39c12"
+        purple = "#8e44ad"
+        pink = "#f368e0"
+        grey = "#3d3d3d"
+        topaz = "#0fb9b1"
+        
+        self.config = {
+            "threat":                  { "color": red },
+            "control":                 { "color": green },
+            "component":               { "color": blue,
+                                         "penwidth": "2" },
+            "component_edge":          { "color": blue,
+                                         "penwidth": "2" },
+            "acceptance":              { "color": orange },
+            "exposure":                { "color": red },
+            "transfer":                { "color": purple },
+            "review":                  { "color": pink },
+            "test":                    { "color": topaz },
+            "threat_control_edge":     { "color": orange },
+            "threat_component_edge":   { "color": red },
+            "threat_exposure_edge":    { "color": red },
+            "threat_transfer_edge":    { "color": purple },
+            "control_component_edge":  { "color": green },
+            "acceptance_threat_edge":  { "color": orange },
+            "exposure_component_edge": { "color": red },
+            "source_transfer_edge":    { "color": orange },
+            "transfer_dest_edge":      { "color": red },
+            "review_component_edge":   { "color": pink },
+            "connection_edge":         { "color": grey,
+                                         "penwidth": "2" },
+            "control_test_edge":       { "color": topaz },
+            "test_component_edge":     { "color": topaz }
+        }
+        
+    def add_node(self, node_id, node_name, config):
+        if node_id not in self.nodes:
+            self.nodes[node_id] = {
+                "label": node_name,
+                "config": config
+            }
+       
+    def add_edge(self, source_node_id, destination_node_id, config):
+        if source_node_id not in self.edges:
+            self.edges[source_node_id] = {}
+        if destination_node_id not in self.edges[source_node_id]:
+            self.edges[source_node_id][destination_node_id] = config
 
-        self.graph = Graph(self.project.name)
-        self.report = Markdown()
-        self.report.add_h1(self.project.name)  # TODO: Unhardcode
-        self.report.add_paragraph(self.project.description)
+    def render(self, filename):
+        for node_id, node in self.nodes.items():
+            self.graph.dot.node(node_id, node["label"], **node["config"])
+            
+        for source_node_id in self.edges.keys():
+            for destination_node_id, cfg in self.edges[source_node_id].items():
+                self.graph.dot.edge(source_node_id, destination_node_id, **cfg)
+            
+        self.graph.dot.render(filename, cleanup=True)
 
-        self.report.add_h1("Diagram")
-        self.report.add_image("Diagram", "ThreatModel.gv.png", "Threat Model Diagram")
+    def process_threats(self):
+        for threat_id, threat in self.data["threats"].items():
+            self.add_node(threat_id, "Threat\n\n{}".format(threat["name"]), self.config["threat"])
+            
+    def process_controls(self):
+        for control_id, control in self.data["controls"].items():
+            self.add_node(control_id, "Control\n\n{}".format(control["name"]), self.config["control"])
+            
+    def process_components(self):
+        for component_id, component in self.data["components"].items():
+            self.add_node(component_id, "Component\n\n{}".format(component["name"]), self.config["component"])
 
-        # Tests
-        tests_by_component_control = {}
-        for test in self.threatmodel.tests:
-            component_id = test.component
-            control_id = test.control
+            for path in component["paths"]:
+                i = 0
+                while i < len(path) - 1:
+                    source_component = path[i]
+                    destination_component = path[i + 1]
 
-            if component_id not in tests_by_component_control:
-                tests_by_component_control[component_id] = {}
-            if control_id not in tests_by_component_control[component_id]:
-                tests_by_component_control[component_id][control_id] = test
+                    self.add_node(source_component, "Component\n\n{}".format(source_component), self.config["component"])
+                    self.add_edge(source_component, destination_component, self.config["component_edge"])
+                    i += 1
+                if len(path) > 0:
+                    last_component = path[-1]
+                    self.add_node(last_component, "Component\n\n{}".format(last_component), self.config["component"])
+                    self.add_edge(last_component, component_id, self.config["component_edge"])
 
-        # Components
-        for component_id, component in self.components.items():
-            self.graph.dot.node(component_id, component, color='#3498db')
+    def process_mitigations(self):
+        for mitigation in self.data["threatmodel"]["mitigations"]:
+            self.add_edge(mitigation["threat"]["id"], mitigation["control"]["id"], self.config["threat_control_edge"])
+            self.add_edge(mitigation["control"]["id"], mitigation["component"]["id"], self.config["control_component_edge"])
+            
+    def process_acceptances(self):
+        for acceptance in self.data["threatmodel"]["acceptances"]:
+            acceptance_id = random_id()
+            self.add_node(acceptance_id, "Accepts\n\n{}".format(acceptance["details"]), self.config["acceptance"])
+            
+            self.add_edge(acceptance_id, acceptance["threat"]["id"], self.config["acceptance_threat_edge"])
+            self.add_edge(acceptance["threat"]["id"], acceptance["component"]["id"], self.config["threat_component_edge"])
+    
+    def process_exposures(self):
+        for exposure in self.data["threatmodel"]["exposures"]:
+            exposure_id = random_id()
+            self.add_node(exposure_id, "Exposes\n\n{}".format(exposure["details"]), self.config["exposure"])
+            
+            self.add_edge(exposure["threat"]["id"], exposure_id, self.config["threat_exposure_edge"])
+            self.add_edge(exposure_id, exposure["component"]["id"], self.config["exposure_component_edge"])
+            
+    def process_transfers(self):
+        for transfer in self.data["threatmodel"]["transfers"]:
+            transfer_id = random_id()
+            self.add_node(transfer_id, "Transfers\n\n{}".format(transfer["details"]), self.config["transfer"])
+            
+            self.add_edge(transfer["threat"]["id"], transfer_id, self.config["threat_transfer_edge"])
+            self.add_edge(transfer["source_component"]["id"], transfer_id, self.config["source_transfer_edge"])
+            self.add_edge(transfer_id, transfer["destination_component"]["id"], self.config["transfer_dest_edge"])
+    
+    def process_reviews(self):
+        for review in self.data["threatmodel"]["reviews"]:
+            review_id = random_id()
+            self.add_node(review_id, "Review\n\n{}\n\n{}".format(review["details"], review["source"]["code"]), self.config["review"])
+            
+            self.add_edge(review_id, review["component"]["id"], self.config["review_component_edge"])
+    
+    def process_connections(self):
+        for connection in self.data["threatmodel"]["connections"]:
+            cfg = self.config["connection_edge"]
+            cfg["label"] = connection["details"]
+            self.add_edge(connection["source_component"]["id"], connection["destination_component"]["id"], cfg)
+    
+    def process_tests(self):
+        for test in self.data["threatmodel"]["tests"]:
+            test_id = random_id()
+            self.add_node(test_id, "Test\n\n{}".format(test["source"]["code"]), self.config["test"])
+            
+            self.add_edge(test["control"]["id"], test_id, self.config["control_test_edge"])
+            self.add_edge(test_id, test["component"]["id"], self.config["test_component_edge"])
 
-        for comp_a_id in self.component_pairs:
-            for comp_b_id in self.component_pairs[comp_a_id]:
-                self.graph.dot.edge(comp_a_id, comp_b_id, color='#a3cdf7')
-
-        # Threats
-        for threat_id, threat in self.threatmodel.threat_library.threats.items():
-            self.graph.dot.node(threat_id, "Threat\n{}\n\n{}".format(threat_id, threat.name), color='#c0392b')
-
-        # Controls
-        for control_id, control in self.threatmodel.control_library.controls.items():
-            self.graph.dot.node(control_id, "Control\n{}\n\n{}".format(control_id, control.name), color='#27ae60')
-
-        self.report.add_h1("Threats")
-
-        table = MarkdownTable()
-        table.add_headers(["Type", "Component", "Threat", "Description", "Test", "Test File", "File", "Line", "Source"])
-
-        # Exposes
-        for exposure in self.threatmodel.exposures:
-            exposure_id = self.random_id()
-            threat_id = exposure.threat
-            threat = self.threatmodel.threat_library.threats[threat_id]
-            component_id = exposure.component
-            component = self.threatmodel.component_library.components[component_id]
-
-            self.graph.dot.node(exposure_id, "Exposure\n\n{}".format(exposure.details), color='#c0392b')
-            self.graph.dot.edge(exposure_id, component_id, color='#c0392b', concentrate='true')
-            self.graph.dot.edge(threat_id, exposure_id, color='#c0392b', concentrate='true')
-
-            table.add_row([
-                "Exposure",
-                component.name,
-                threat.name,
-                exposure.details,
-                "",
-                "",
-                exposure.source.filename,
-                str(exposure.source.line),
-                self.report.code(exposure.source.code)
-            ])
-
-        # Acceptances
-        for acceptance in self.threatmodel.acceptances:
-            acceptance_id = self.random_id()
-            threat_id = acceptance.threat
-            threat = self.threatmodel.threat_library.threats[threat_id]
-            component_id = acceptance.component
-            component = self.threatmodel.component_library.components[component_id]
-
-            self.graph.dot.node(acceptance_id, "Accepts\n\n{}".format(acceptance.details), color='#c0392b')
-            self.graph.dot.edge(threat_id, component_id, color='#c0392b', concentrate='true')
-            self.graph.dot.edge(acceptance_id, threat_id, color='#c0392b', concentrate='true')
-
-            table.add_row([
-                "Acceptance",
-                component.name,
-                threat.name,
-                acceptance.details,
-                "",
-                "",
-                acceptance.source.filename,
-                str(acceptance.source.line),
-                self.report.code(acceptance.source.code)
-            ])
-
-        # Transfers
-        for transfer in self.threatmodel.transfers:
-            transfer_id = self.random_id()
-            threat_id = transfer.threat
-            threat = self.threatmodel.threat_library.threats[threat_id]
-            source_id = transfer.source_component
-            source = self.threatmodel.component_library.components[source_id]
-            dest_id = transfer.destination_component
-            dest = self.threatmodel.component_library.components[dest_id]
-
-            self.graph.dot.node(transfer_id, "Transfer\n\n{}".format(transfer.details), color='#8e44ad')
-
-            self.graph.dot.edge(source_id, transfer_id, color='#f39c12', concentrate='true')
-            self.graph.dot.edge(transfer_id, dest_id, color='#e74c3c', concentrate='true')
-            self.graph.dot.edge(threat_id, transfer_id, color='#8e44ad', concentrate='true')
-
-            table.add_row([
-                "Transfer",
-                "{} (from {})".format(dest.name, source.name),
-                threat.name,
-                transfer.details,
-                "",
-                "",
-                transfer.source.filename,
-                str(transfer.source.line),
-                self.report.code(transfer.source.code)
-            ])
-
-        # Mitigations
-        for mitigation in self.threatmodel.mitigations:
-            component_id = mitigation.component
-            component = self.threatmodel.component_library.components[component_id]
-            threat_id = mitigation.threat
-            threat = self.threatmodel.threat_library.threats[threat_id]
-            control_id = mitigation.control
-            control = self.threatmodel.control_library.controls[control_id]
-
-            self.graph.dot.edge(control_id, component_id, color='#27ae60', concentrate='true')
-            self.graph.dot.edge(threat_id, control_id, color='#f39c12', concentrate='true')
-
-            if component_id in tests_by_component_control and control_id in tests_by_component_control[component_id]:
-                test = tests_by_component_control[component_id][control_id]
-                test_field = self.report.code(test.source.code)
-                test_line = "{}:{}".format(test.source.filename, str(test.source.line))
-            else:
-                test_field = "None"
-                test_line = ""
-
-            table.add_row([
-                "Mitigation",
-                component.name,
-                threat.name,
-                control.name,
-                test_field,
-                test_line,
-                mitigation.source.filename,
-                str(mitigation.source.line),
-                self.report.code(mitigation.source.code)
-            ])
-
-        # Create the threats table
-        self.report.add_table(table)
-
-        # Connects
-        self.report.add_h1("Connections")
-        table = MarkdownTable()
-        table.add_headers(["Source", "Destination", "Description", "File", "Line", "Source"])
-
-        for connection in self.threatmodel.connections:
-            source_id = connection.source_component
-            source = self.threatmodel.component_library.components[source_id]
-            dest_id = connection.destination_component
-            dest = self.threatmodel.component_library.components[dest_id]
-
-            self.graph.dot.edge(source_id, dest_id, label=connection.details, concentrate='true')
-
-            table.add_row([
-                source.name,
-                dest.name,
-                connection.details,
-                connection.source.filename,
-                str(connection.source.line),
-                self.report.code(connection.source.code)
-            ])
-
-        self.report.add_table(table)
-
-        # Reviews
-        self.report.add_h1("Reviews")
-        table = MarkdownTable()
-        table.add_headers(["Component", "Review", "File", "Line", "Source"])
-
-        for review in self.threatmodel.reviews:
-            review_id = self.random_id()
-            component_id = review.component
-            component = self.threatmodel.component_library.components[component_id]
-
-            self.graph.dot.node(review_id, review.details)
-            self.graph.dot.edge(review_id, component_id)
-
-            table.add_row([
-                component.name,
-                review.details,
-                review.source.filename,
-                str(review.source.line),
-                self.report.code(review.source.code)
-            ])
-
-        self.report.add_table(table)
-
-        # Outputs
-        self.graph.dot.render('ThreatModel.gv')
-        data.write_file(self.report.data, "ThreatModel.md")
+    def generate(self, filename):
+        self.process_threats()
+        self.process_controls()
+        self.process_components()
+        
+        self.process_mitigations()
+        self.process_acceptances()
+        self.process_exposures()
+        self.process_transfers()
+        
+        self.process_reviews()
+        self.process_connections()
+        self.process_tests()
+        
+        self.render(filename)

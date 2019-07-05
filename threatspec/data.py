@@ -31,6 +31,24 @@ def recurse_path(path):
             return glob.iglob(os.path.join(path, "**/*"), recursive=True)
 
 
+def blacklisted_path(path):
+    blacklisted_files = [
+        "threatspec.yaml",
+        "ThreatModel*"
+    ]
+    blacklisted_dirs = [
+        "threatmodel",
+    ]
+    
+    if os.path.isfile(path) and os.path.basename(path) in blacklisted_files:
+        return True
+    
+    if os.path.isdir(path) and os.path.split(os.path.dirname(path))[-1] in blacklisted_dirs:
+        return True
+        
+    return False
+    
+    
 def path_ignored(path, ignore):
     for i in ignore:
         if i in path:

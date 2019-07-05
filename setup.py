@@ -1,11 +1,5 @@
 from setuptools import setup, find_packages
 
-# read the contents of your README file
-#from os import path
-#this_directory = path.abspath(path.dirname(__file__))
-#with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
-#    long_description = f.read()
-
 setup(
     name='threatspec',
     description='threat modeling as code',
@@ -21,7 +15,8 @@ setup(
         'Click',
         'graphviz',
         'pyyaml',
-        'jsonschema'
+        'jsonschema',
+        'jinja2'
     ],
     use_scm_version=True,
     setup_requires=[

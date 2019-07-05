@@ -158,6 +158,49 @@ assert_file_exists() {
   fi
 }
 
+assert_file_contains_count() {
+  count=$($(type -p ggrep grep | head -1) -c "$2" $1)
+  expr="${count}${3}"
+  assert_equal $((expr)) 1 || {
+    echo "looking for: $2"
+    echo "in: $1"
+    echo "expected: $3"
+    echo "found: $count"
+  } | flunk
+}
+
 assert_file_contains() {
-  $(type -p ggrep grep | head -1) -q "$2" $1 || echo "couldn't find $2 in $1" | flunk
+  assert_file_contains_count $1 "$2" ">0" || {
+    echo "looking for :$2"
+    echo "in: $1"
+    echo "expected: >0"
+    echo "found: 0"
+  } | flunk
+}
+
+refute_dir_exists() {
+  if [ -d "$1" ]; then
+    echo "directory exists but shouldn't: $1" | flunk
+  fi
+}
+
+refute_file_exists() {
+  if [ -f "$1" ]; then
+    echo "file exists but shouldn't: $1" | flunk
+  fi
+}
+
+refute_file_contains_count() {
+  ! assert_file_contains_count $1 "$2" "$3" || {
+    echo "found: $2"
+    echo "with count: $3"
+    echo "in: $1"
+  } | flunk
+}
+
+refute_file_contains() {
+  ! assert_file_contains $1 "$2" || {
+    echo "found: $2"
+    echo "in: $1"
+  } | flunk
 }
