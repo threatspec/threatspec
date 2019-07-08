@@ -6,7 +6,7 @@ from jinja2 import Environment, FileSystemLoader, PackageLoader
 from graphviz import Digraph
 import os
 import uuid
-
+import textwrap
 
 def random_id():
     return uuid.uuid4().hex
@@ -161,6 +161,8 @@ class Graph():
             }
         )
 
+        
+
 
 class GraphvizReporter(Reporter):
 
@@ -173,6 +175,7 @@ class GraphvizReporter(Reporter):
         red = "#c0392b"
         green = "#27ae60"
         blue = "#3498db"
+        light_blue = "#7dbeff"
         orange = "#f39c12"
         purple = "#8e44ad"
         pink = "#f368e0"
@@ -180,33 +183,66 @@ class GraphvizReporter(Reporter):
         topaz = "#0fb9b1"
         
         self.config = {
-            "threat":                  { "color": red },
-            "control":                 { "color": green },
-            "component":               { "color": blue,
-                                         "penwidth": "2" },
-            "component_edge":          { "color": blue,
-                                         "penwidth": "2" },
-            "acceptance":              { "color": orange },
-            "exposure":                { "color": red },
-            "transfer":                { "color": purple },
-            "review":                  { "color": pink },
-            "test":                    { "color": topaz },
-            "threat_control_edge":     { "color": orange },
-            "threat_component_edge":   { "color": red },
-            "threat_exposure_edge":    { "color": red },
-            "threat_transfer_edge":    { "color": purple },
-            "control_component_edge":  { "color": green },
-            "acceptance_threat_edge":  { "color": orange },
-            "exposure_component_edge": { "color": red },
-            "source_transfer_edge":    { "color": orange },
-            "transfer_dest_edge":      { "color": red },
-            "review_component_edge":   { "color": pink },
-            "connection_edge":         { "color": grey,
-                                         "penwidth": "2" },
-            "control_test_edge":       { "color": topaz },
-            "test_component_edge":     { "color": topaz }
+            "threat":                    { "color": red },
+            "control":                   { "color": green },
+            "component":                 { "color": blue,
+                                           "penwidth": "2",
+                                           "shape": "oval" },
+            "component_edge":            { "color": blue,
+                                           "penwidth": "1",
+                                           "style": "dotted" },
+            "mitigation":                { "color": green },
+            "acceptance":                { "color": orange },
+            "exposure":                  { "color": red },
+            "transfer":                  { "color": purple },
+            "review":                    { "color": pink },
+            "test":                      { "color": topaz },
+            "threat_control_edge":       { "color": orange,
+                                           "arrowhead": "none" },
+            "threat_component_edge":     { "color": red },
+            "threat_exposure_edge":      { "color": red,
+                                           "arrowhead": "none" },
+            "threat_transfer_edge":      { "color": purple,
+                                           "arrowhead": "none" },
+            "threat_acceptance_edge":    { "color": red,
+                                           "arrowhead": "none" },
+            "threat_mitigation_edge":    { "color": green,
+                                           "arrowhead": "none" },
+            "control_mitigation_edge":   { "color": green,
+                                           "arrowhead": "none" },
+            "exposure_component_edge":   { "color": red },
+            "acceptance_component_edge": { "color": orange },
+            "source_transfer_edge":      { "color": orange,
+                                           "arrowhead": "none" },
+            "transfer_dest_edge":        { "color": red },
+            "mitigation_component_edge": { "color": green },
+            "review_component_edge":     { "color": pink },
+            "connection_edge":           { "color": grey,
+                                           "penwidth": "2" },
+            "control_test_edge":         { "color": topaz,
+                                           "arrowhead": "none" },
+            "test_component_edge":       { "color": topaz }
         }
+        self.node_width = 60
         
+    def wrap(self, text, adj=0):
+        return textwrap.fill(text, self.node_width + adj)
+        
+    def trunc(self, text, adj=0):
+        if len(text) > self.node_width:
+            start = len(text) - (self.node_width - 3 - adj)
+            return "..."+text[start:]
+        else:
+            return text
+            
+    def join(self, first, second):
+        if first[-1] == ".":
+            joiner = " "
+        else:
+            joiner = ". "
+        return (first+joiner+second).strip()
+        
+            
     def add_node(self, node_id, node_name, config):
         if node_id not in self.nodes:
             self.nodes[node_id] = {
@@ -232,15 +268,30 @@ class GraphvizReporter(Reporter):
 
     def process_threats(self):
         for threat_id, threat in self.data["threats"].items():
-            self.add_node(threat_id, "Threat\n\n{}".format(threat["name"]), self.config["threat"])
+            if threat["description"]:
+                threat_label = "Threat\n\n{}\n\n{}".format(
+                    threat["name"],
+                    self.wrap(threat["description"])
+                )
+            else:
+                threat_label = "Threat\n\n{}".format(threat["name"])
+            self.add_node(threat_id, threat_label, self.config["threat"])
             
     def process_controls(self):
         for control_id, control in self.data["controls"].items():
-            self.add_node(control_id, "Control\n\n{}".format(control["name"]), self.config["control"])
+            if control["description"]:
+                control_label = "Control\n\n{}\n\n{}".format(
+                    control["name"],
+                    self.wrap(control["description"])
+                )
+            else:
+                control_label = "Control\n\n{}".format(control["name"])
+                
+            self.add_node(control_id, control_label, self.config["control"])
             
     def process_components(self):
         for component_id, component in self.data["components"].items():
-            self.add_node(component_id, "Component\n\n{}".format(component["name"]), self.config["component"])
+            self.add_node(component_id, "{}".format(component["name"]), self.config["component"])
 
             for path in component["paths"]:
                 i = 0
@@ -248,31 +299,59 @@ class GraphvizReporter(Reporter):
                     source_component = path[i]
                     destination_component = path[i + 1]
 
-                    self.add_node(source_component, "Component\n\n{}".format(source_component), self.config["component"])
+                    self.add_node(source_component, "{}".format(source_component), self.config["component"])
                     self.add_edge(source_component, destination_component, self.config["component_edge"])
                     i += 1
                 if len(path) > 0:
                     last_component = path[-1]
-                    self.add_node(last_component, "Component\n\n{}".format(last_component), self.config["component"])
+                    self.add_node(last_component, "{}".format(last_component), self.config["component"])
                     self.add_edge(last_component, component_id, self.config["component_edge"])
 
     def process_mitigations(self):
         for mitigation in self.data["threatmodel"]["mitigations"]:
-            self.add_edge(mitigation["threat"]["id"], mitigation["control"]["id"], self.config["threat_control_edge"])
-            self.add_edge(mitigation["control"]["id"], mitigation["component"]["id"], self.config["control_component_edge"])
+            mitigation_id = random_id()
+            control = self.join(mitigation["control"]["name"], mitigation["control"]["description"])
+
+            mitigation_label = "{}\n\n{}\n\nin {}:{}".format(
+                self.wrap("Threat is mitigated by control {}".format(control)),
+                self.wrap(mitigation["source"]["code"]),
+                self.trunc(mitigation["source"]["filename"], 10),
+                str(mitigation["source"]["line"])
+            )
+            self.add_node(mitigation_id, mitigation_label, self.config["mitigation"])
+            
+            self.add_edge(mitigation["threat"]["id"], mitigation_id, self.config["threat_mitigation_edge"])
+            self.add_edge(mitigation["control"]["id"], mitigation_id, self.config["control_mitigation_edge"])
+            self.add_edge(mitigation_id, mitigation["component"]["id"], self.config["mitigation_component_edge"])
             
     def process_acceptances(self):
         for acceptance in self.data["threatmodel"]["acceptances"]:
             acceptance_id = random_id()
-            self.add_node(acceptance_id, "Accepts\n\n{}".format(acceptance["details"]), self.config["acceptance"])
+
+            acceptance_label = "{}\n\n{}\n\nin {}:{}".format(
+                self.wrap("Threat has been accepted by {}".format(acceptance["details"])),
+                self.wrap(acceptance["source"]["code"]),
+                self.trunc(acceptance["source"]["filename"], 10),
+                str(acceptance["source"]["line"])
+            )
             
-            self.add_edge(acceptance_id, acceptance["threat"]["id"], self.config["acceptance_threat_edge"])
-            self.add_edge(acceptance["threat"]["id"], acceptance["component"]["id"], self.config["threat_component_edge"])
+            self.add_node(acceptance_id, acceptance_label, self.config["acceptance"])
+            
+            self.add_edge(acceptance["threat"]["id"], acceptance_id, self.config["threat_acceptance_edge"])
+            self.add_edge(acceptance_id, acceptance["component"]["id"], self.config["acceptance_component_edge"])
     
     def process_exposures(self):
         for exposure in self.data["threatmodel"]["exposures"]:
             exposure_id = random_id()
-            self.add_node(exposure_id, "Exposes\n\n{}".format(exposure["details"]), self.config["exposure"])
+            
+            exposure_label = "{}\n\n{}\n\nin {}:{}".format(
+                self.wrap("Threat is exposed by {}".format(exposure["details"])),
+                self.wrap(exposure["source"]["code"]),
+                self.trunc(exposure["source"]["filename"], 10),
+                str(exposure["source"]["line"])
+            )
+            
+            self.add_node(exposure_id, exposure_label, self.config["exposure"])
             
             self.add_edge(exposure["threat"]["id"], exposure_id, self.config["threat_exposure_edge"])
             self.add_edge(exposure_id, exposure["component"]["id"], self.config["exposure_component_edge"])
@@ -280,7 +359,15 @@ class GraphvizReporter(Reporter):
     def process_transfers(self):
         for transfer in self.data["threatmodel"]["transfers"]:
             transfer_id = random_id()
-            self.add_node(transfer_id, "Transfers\n\n{}".format(transfer["details"]), self.config["transfer"])
+            
+            transfer_label = "{}\n\n{}\n\nin {}:{}".format(
+                self.wrap("Threat is transfered to another component by {}".format(transfer["details"])),
+                self.wrap(transfer["source"]["code"]),
+                self.trunc(transfer["source"]["filename"], 10),
+                str(transfer["source"]["line"])
+            )
+            
+            self.add_node(transfer_id, transfer_label, self.config["transfer"])
             
             self.add_edge(transfer["threat"]["id"], transfer_id, self.config["threat_transfer_edge"])
             self.add_edge(transfer["source_component"]["id"], transfer_id, self.config["source_transfer_edge"])
@@ -289,7 +376,13 @@ class GraphvizReporter(Reporter):
     def process_reviews(self):
         for review in self.data["threatmodel"]["reviews"]:
             review_id = random_id()
-            self.add_node(review_id, "Review\n\n{}\n\n{}".format(review["details"], review["source"]["code"]), self.config["review"])
+            review_label = "{}\n\n{}\n\nin {}:{}".format(
+                self.wrap("To review: {}".format(review["details"])),
+                self.wrap(review["source"]["code"]),
+                self.trunc(review["source"]["filename"], 10),
+                str(review["source"]["line"])
+            )
+            self.add_node(review_id, review_label, self.config["review"])
             
             self.add_edge(review_id, review["component"]["id"], self.config["review_component_edge"])
     
@@ -302,7 +395,13 @@ class GraphvizReporter(Reporter):
     def process_tests(self):
         for test in self.data["threatmodel"]["tests"]:
             test_id = random_id()
-            self.add_node(test_id, "Test\n\n{}".format(test["source"]["code"]), self.config["test"])
+            
+            test_label = "Control is tested for component\n\n{}\n\nin {}:{}".format(
+                self.wrap(test["source"]["code"]),
+                self.trunc(test["source"]["filename"], 10),
+                str(test["source"]["line"])
+            )
+            self.add_node(test_id, test_label, self.config["test"])
             
             self.add_edge(test["control"]["id"], test_id, self.config["control_test_edge"])
             self.add_edge(test_id, test["component"]["id"], self.config["test_component_edge"])

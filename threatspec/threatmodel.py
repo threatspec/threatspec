@@ -397,6 +397,15 @@ class ThreatModel(Library):
             Source(**source)
         ))
 
+    def add_threat(self, threat, source):
+        self.threat_library.add_threat(threat, self.run_id)
+        
+    def add_control(self, control, source):
+        self.control_library.add_control(control, self.run_id)
+        
+    def add_component(self, component, source):
+        self.component_library.add_component(component, source)
+        
     def load(self, data):
         for mitigation in data["mitigations"]:
             self.add_mitigation(**mitigation)

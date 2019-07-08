@@ -17,6 +17,9 @@ class Parser():
         self.action_table["connects"] = self.threatmodel.add_connection
         self.action_table["review"] = self.threatmodel.add_review
         self.action_table["tests"] = self.threatmodel.add_test
+        self.action_table["threat"] = self.threatmodel.add_threat
+        self.action_table["control"] = self.threatmodel.add_control
+        self.action_table["component"] = self.threatmodel.add_component
 
         self.comment_chars = ["//", "#"]
 
@@ -28,6 +31,9 @@ class Parser():
         self.patterns["connects"] = r'@connects (?P<source_component>.*?) (?P<direction>with|to) (?P<destination_component>.*?) with (?P<details>.*)'
         self.patterns["review"] = r'@review (?P<component>.*?) (?P<details>.*)'
         self.patterns["tests"] = r'@tests (?P<control>.*?) for (?P<component>.*)'
+        self.patterns["threat"] = r'@threat (?P<threat>.*)'
+        self.patterns["control"] = r'@control (?P<control>.*)'
+        self.patterns["component"] = r'@component (?P<component>.*)'
 
     def parse_annotation(self, annotation):
         for action in self.patterns.keys():
