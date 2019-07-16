@@ -16,7 +16,8 @@ setup(
         'graphviz',
         'pyyaml',
         'jsonschema',
-        'jinja2'
+        'jinja2',
+        'comment_parser'
     ],
     use_scm_version=True,
     setup_requires=[
