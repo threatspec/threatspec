@@ -1,6 +1,6 @@
 from typing import List, Dict
 import re
-from pprint import pprint
+
 
 class Source():
     def __init__(self, annotation: str, code: str, filename: str, line: int):
@@ -272,8 +272,8 @@ class ThreatLibrary(Library):
             description = ""
             data = {}
         (name, threat_id) = self.parse_name(threat)
-        if not threat_id in self.threats:
-            self.threats[threat_id]= Threat(threat_id, run_id, name, description, data)
+        if threat_id not in self.threats:
+            self.threats[threat_id] = Threat(threat_id, run_id, name, description, data)
         return threat_id
 
     def load(self, data, run_id=None):
@@ -308,7 +308,7 @@ class ControlLibrary(Library):
             description = ""
             data = {}
         (name, control_id) = self.parse_name(control)
-        if not control_id in self.controls:
+        if control_id not in self.controls:
             self.controls[control_id] = Control(control_id, run_id, name, description, data)
         return control_id
 

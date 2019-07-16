@@ -3,9 +3,8 @@ logger = logging.getLogger(__name__)
 
 import re
 import yaml
-import sys
 from comment_parser import comment_parser
-from pprint import pprint
+
 
 class Parser():
     def __init__(self, threatmodel):
@@ -39,7 +38,6 @@ class Parser():
         self.patterns["control"] = r'@control (?P<control>.*)'
         self.patterns["component"] = r'@component (?P<component>.*)'
 
- 
     def run_action(self, data, source):
         action = data.pop("action")
         self.action_table[action](data, source=source)
@@ -99,7 +97,7 @@ class SourceFileParser(Parser):
         i = start_line
         code = []
         
-        for line in lines[start_line-1:]:
+        for line in lines[start_line - 1:]:
             if count >= num_lines:
                 return "".join(code)
                 

@@ -8,14 +8,14 @@ import os
 import uuid
 import textwrap
 
-from pprint import pprint
-
 
 def random_id():
     return uuid.uuid4().hex
 
+
 def left_align(text):
     return text.replace("\n", "\l")
+
 
 def right_align(text):
     return text.replace("\n", "\r")
@@ -28,15 +28,17 @@ def wrap(text, width):
 def trunc_left(text, width):
     if len(text) > width:
         start = len(text) - (width - 3)
-        return "..."+text[start:]
+        return "..." + text[start:]
     else:
         return text
 
+
 def trunc_right(text, width):
     if len(text) > width:
-        return text[0:width-3]+"..."
+        return text[0:width - 3] + "..."
     else:
         return text
+
 
 def join(first, second):
     if first == "":
@@ -45,7 +47,7 @@ def join(first, second):
         joiner = " "
     else:
         joiner = ". "
-    return (first+joiner+second).strip()
+    return (first + joiner + second).strip()
     
         
 def code(block, width=None):
@@ -65,6 +67,7 @@ def code(block, width=None):
         else:
             new_lines.append(line[num_spaces:])
     return "\n".join(new_lines)
+
 
 class DataReporter():
     
@@ -215,8 +218,6 @@ class Graph():
             }
         )
 
-        
-
 
 class GraphvizReporter(Reporter):
 
@@ -229,7 +230,6 @@ class GraphvizReporter(Reporter):
         red = "#c0392b"
         green = "#27ae60"
         blue = "#3498db"
-        light_blue = "#7dbeff"
         orange = "#f39c12"
         purple = "#8e44ad"
         pink = "#f368e0"
@@ -278,9 +278,6 @@ class GraphvizReporter(Reporter):
             "test_component_edge":       { "color": topaz }
         }
         self.node_width = 80
-            
-
-        
             
     def add_node(self, node_id, node_name, config):
         if node_id not in self.nodes:
