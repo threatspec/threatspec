@@ -23,8 +23,6 @@ class Parser():
         self.action_table["control"] = self.threatmodel.add_control
         self.action_table["component"] = self.threatmodel.add_component
 
-        self.comment_chars = ["//", "#"]
-
         self.patterns = {}
         self.patterns["mitigates"] = r'@mitigates (?P<component>.*?) against (?P<threat>.*?) with (?P<control>.*)'
         self.patterns["accepts"] = r'@accepts (?P<threat>.*?) to (?P<component>.*?) with (?P<details>.*)'
@@ -53,6 +51,10 @@ class Parser():
 
 
 class SourceFileParser(Parser):
+    
+    def __init__(self, threatmodel, mime=None):
+        super().__init__(threatmodel)
+        self.mime = mime
     
     def parse_comment(self, comment):
         annotations = []
@@ -106,13 +108,25 @@ class SourceFileParser(Parser):
                 count += 1
             i += 1
         return ""
+    
+    def get_lines(self, filename):
+        try:
+            with open(filename) as fh:
+                return fh.readlines()
+        except UnicodeDecodeError:
+            return None
         
     def parse_file(self, filename):
         logger.debug("Parsing file {}".format(filename))
+        
+        lines = self.get_lines(filename)
+        if not lines:
+            return
+        
         commented_line_numbers = []
         comments = []
         try:
-            for comment in comment_parser.extract_comments(filename):
+            for comment in comment_parser.extract_comments(filename, self.mime):
                 comment_text = comment.text()
                 comment_line = comment.line_number()
                 if comment.is_multiline():
@@ -128,12 +142,6 @@ class SourceFileParser(Parser):
                 })
         except comment_parser.UnsupportedError as e:
             print(e)
-            return
-        
-        try:
-            with open(filename) as fh:
-                lines = fh.readlines()
-        except UnicodeDecodeError:
             return
                 
         for comment in comments:
@@ -153,61 +161,23 @@ class SourceFileParser(Parser):
                 for data in annotations:
                     self.run_action(data, source)
 
-    """
+
+class YamlFileParser(Parser):
     def parse_file(self, filename):
-        try:
-            with open(filename) as fh:
-                lines = fh.readlines()
-        except UnicodeDecodeError:
-            return
-        logger.debug("Parsing file {}".format(filename))
-        current_line_index = 0
+        pass
+    
+    
+class JsonFileParser(Parser):
+    def parse_file(self, filename):
+        pass
+    
+    
+class TextFileParser(Parser):
+    def parse_file(self, filename):
+        pass
+    
 
-        while current_line_index < len(lines):
-            current_line = lines[current_line_index].strip()
-            if self.is_threatspec_line(current_line):
-                next_line_index = current_line_index + 1
-                while next_line_index < len(lines):
-                    next_line = lines[next_line_index].strip()
-                    if not self.is_threatspec_line(next_line):
-                        logger.debug("Parsing line {}".format(current_line))
-                        (data, source) = self.parse_line(current_line, next_line, filename, current_line_index + 1)
-                        if data:
-                            self.run_action(data, source)
-                        break
-                    next_line_index += 1
-            current_line_index += 1
-
-    def parse_comment_line(self, line):
-        annotation = ""
-        code = ""
-        for commment_char in self.comment_chars:  # TODO: Support files without comments
-            if commment_char in line:
-                parts = line.split(commment_char)
-                annotation = parts[-1].strip()
-                code = "".join(parts[0:-1]).strip()
-                break
-        return (annotation, code)
-
-    def parse_line(self, line, next_line, filename, line_no):
-        (annotation, code) = self.parse_comment_line(line)
-        if annotation == "":
-            return (None, None)
-        if code == "":
-            code = next_line
-
-        data = self.parse_annotation(annotation)
-        if not data:
-            return (None, None)
-        source = {
-            "annotation": annotation,
-            "code": code,
-            "filename": filename,
-            "line": line_no
-        }
-        return (data, source)
-
-
+    """
 class YamlFileParser(Parser):
     def parse_data(self, data, parent, filename):
         if isinstance(data, dict):

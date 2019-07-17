@@ -166,6 +166,9 @@ assert_file_contains_count() {
     echo "in: $1"
     echo "expected: $3"
     echo "found: $count"
+    echo "file content:"
+    cat $1
+    echo
   } | flunk
 }
 
@@ -175,6 +178,9 @@ assert_file_contains() {
     echo "in: $1"
     echo "expected: >0"
     echo "found: 0"
+    echo "file content:"
+    cat $1
+    echo
   } | flunk
 }
 

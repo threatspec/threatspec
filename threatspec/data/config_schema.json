@@ -9,7 +9,7 @@
         "name": { "$ref": "#/definitions/name" },
         "description": { "$ref": "#/definitions/description" }
       },
-      "required": ["name", "description"],
+      "required": ["name", "description"]
     },
     "paths": {
       "type": "array",
@@ -22,8 +22,10 @@
       "type": ["string", "object"],
       "properties": {
         "path": { "type": "string" },
-        "ignore": { "type": ["string", "array"], "items": { "type": "string" } }
-      }
+        "ignore": { "type": ["string", "array"], "items": { "type": "string" } },
+        "mime": { "type": "string" }
+      },
+      "required": ["path"]
     },
     "name": {
       "type": "string"

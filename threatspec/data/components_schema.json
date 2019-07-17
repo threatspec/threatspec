@@ -29,7 +29,7 @@
           }
         }
       },
-      "required": ["id", "run_id", "name", "description", "paths"]
+      "required": ["id", "run_id", "name", "description", "custom", "paths"]
     }
   }
 }
