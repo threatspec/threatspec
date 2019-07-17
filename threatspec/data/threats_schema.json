@@ -23,7 +23,7 @@
         "name": { "type": "string" },
         "description": { "type": "string" }
       },
-      "required": ["id", "run_id", "name", "description", "custom"]
+      "required": ["id", "run_id", "name", "description"]
     }
   }
 }
