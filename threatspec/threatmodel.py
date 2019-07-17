@@ -19,44 +19,12 @@ class Source():
 
 
 class Threat():
-    def __init__(self, id: str, run_id: str, name: str, description: str):
+    def __init__(self, id: str, run_id: str, name: str, description: str, custom: dict):
         self.id = id
         self.run_id = run_id
         self.name = name
         self.description = description
-
-    def as_dict(self):
-        return {
-            "id": self.id,
-            "run_id": self.run_id,
-            "name": self.name,
-            "description": self.description
-        }
-
-
-class Control():
-    def __init__(self, id: str, run_id: str, name: str, description: str):
-        self.id = id
-        self.run_id = run_id
-        self.name = name
-        self.description = description
-        
-    def as_dict(self):
-        return {
-            "id": self.id,
-            "run_id": self.run_id,
-            "name": self.name,
-            "description": self.description
-        }
-
-
-class Component():
-    def __init__(self, id: str, run_id: str, name: str, description: str, paths: List[str]):
-        self.id = id
-        self.run_id = run_id
-        self.name = name
-        self.description = description
-        self.paths = paths
+        self.custom = custom
 
     def as_dict(self):
         return {
@@ -64,15 +32,55 @@ class Component():
             "run_id": self.run_id,
             "name": self.name,
             "description": self.description,
-            "paths": self.paths
+            "custom": self.custom
+        }
+
+
+class Control():
+    def __init__(self, id: str, run_id: str, name: str, description: str, custom: dict):
+        self.id = id
+        self.run_id = run_id
+        self.name = name
+        self.description = description
+        self.custom = custom
+        
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "run_id": self.run_id,
+            "name": self.name,
+            "description": self.description,
+            "custom": self.custom
+        }
+
+
+class Component():
+    def __init__(self, id: str, run_id: str, name: str, description: str, paths: List[str], custom: dict):
+        self.id = id
+        self.run_id = run_id
+        self.name = name
+        self.description = description
+        self.paths = paths
+        self.custom = custom
+
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "run_id": self.run_id,
+            "name": self.name,
+            "description": self.description,
+            "paths": self.paths,
+            "custom": self.custom
         }
 
 
 class Mitigation():
-    def __init__(self, control: Control, threat: Threat, component: Component, source: Source):
+    def __init__(self, control: Control, threat: Threat, component: Component, description: str, custom: dict, source: Source):
         self.control = control
         self.threat = threat
         self.component = component
+        self.description = description
+        self.custom = custom
         self.source = source
         
     def as_dict(self):
@@ -80,15 +88,19 @@ class Mitigation():
             "control": self.control,
             "threat": self.threat,
             "component": self.component,
+            "description": self.description,
+            "custom": self.custom,
             "source": self.source.as_dict()
         }
 
 
 class Acceptance():
-    def __init__(self, threat: Threat, component: Component, details: str, source: Source):
+    def __init__(self, threat: Threat, component: Component, details: str, description: str, custom: dict, source: Source):
         self.threat = threat
         self.component = component
         self.details = details
+        self.description = description
+        self.custom = custom
         self.source = source
         
     def as_dict(self):
@@ -96,16 +108,20 @@ class Acceptance():
             "threat": self.threat,
             "component": self.component,
             "details": self.details,
+            "description": self.description,
+            "custom": self.custom,
             "source": self.source.as_dict()
         }
 
 
 class Transfer():
-    def __init__(self, threat: Threat, source_component: Component, destination_component: Component, details: str, source: Source):
+    def __init__(self, threat: Threat, source_component: Component, destination_component: Component, details: str, description: str, custom: dict, source: Source):
         self.threat = threat
         self.source_component = source_component
         self.destination_component = destination_component
         self.details = details
+        self.description = description
+        self.custom = custom
         self.source = source
         
     def as_dict(self):
@@ -114,15 +130,19 @@ class Transfer():
             "source_component": self.source_component,
             "destination_component": self.destination_component,
             "details": self.details,
+            "description": self.description,
+            "custom": self.custom,
             "source": self.source.as_dict()
         }
 
 
 class Exposure():
-    def __init__(self, threat: Threat, component: Component, details: str, source: Source):
+    def __init__(self, threat: Threat, component: Component, details: str, description: str, custom: dict, source: Source):
         self.threat = threat
         self.component = component
         self.details = details
+        self.description = description
+        self.custom = custom
         self.source = source
     
     def as_dict(self):
@@ -130,16 +150,20 @@ class Exposure():
             "threat": self.threat,
             "component": self.component,
             "details": self.details,
+            "description": self.description,
+            "custom": self.custom,
             "source": self.source.as_dict()
         }
 
 
 class Connection():
-    def __init__(self, source_component: Component, destination_component: Component, direction: str, details: str, source: Source):
+    def __init__(self, source_component: Component, destination_component: Component, direction: str, details: str, description: str, custom: dict, source: Source):
         self.source_component = source_component
         self.destination_component = destination_component
         self.direction = direction
         self.details = details
+        self.description = description
+        self.custom = custom
         self.source = source
         
     def as_dict(self):
@@ -148,101 +172,118 @@ class Connection():
             "destination_component": self.destination_component,
             "direction": self.direction,
             "details": self.details,
+            "description": self.description,
+            "custom": self.custom,
             "source": self.source.as_dict()
         }
 
 
 class Review():
-    def __init__(self, component: Component, details: str, source: Source):
+    def __init__(self, component: Component, details: str, description: str, custom: dict, source: Source):
         self.component = component
         self.details = details
+        self.description = description
+        self.custom = custom
         self.source = source
 
     def as_dict(self):
         return {
             "component": self.component,
             "details": self.details,
+            "description": self.description,
+            "custom": self.custom,
             "source": self.source.as_dict()
         }
 
 
 class Test():
-    def __init__(self, component: Component, control: Control, source: Source):
+    def __init__(self, component: Component, control: Control, description: str, custom: dict, source: Source):
         self.component = component
         self.control = control
+        self.description = description
+        self.custom = custom
         self.source = source
         
     def as_dict(self):
         return {
             "component": self.component,
             "control": self.control,
+            "description": self.description,
+            "custom": self.custom,
             "source": self.source.as_dict()
         }
 
 
 class Library():
-    def parse_name(self, name):
+    # TODO - move this into parser.py
+    def parse_name(self, data):
+        name = ""
+        id = ""
+        
         # Don't parse if all we have is an ID
-        m = re.match(r'^#[a-zA-Z0-9_]+$', name, re.M)
+        m = re.match(r'^#[a-zA-Z0-9_]+$', data, re.M)
         if m:
-            return {"id": name, "name": "", "description": ""}
+            return ("", data)
 
         # TODO - write tests then handle special global ids #client and #server
-        m = re.match(r'(?P<name>[^()]+)(?:(?P<id>\(.*?\))(?P<description>.*)?)?', name, re.M | re.I)
+        m = re.match(r'(?P<name>[^()]+)(?:(?P<id>\(.*?\)))?', data, re.M | re.I)
         if m:
             match = m.groupdict()
             
-            match["name"] = match["name"].strip()
+            name = match["name"].strip()
 
-            if match["name"].startswith("#"):
-                match["id"] = match["name"]
+            if name.startswith("#"):
+                id = match["name"]
 
             if match["id"]:
-                match["id"] = match["id"].strip()
+                id = match["id"].strip()
             else:
-                if match["name"].endswith("/"):  # Dirty hack
-                    id_body = match["name"] + "root"
+                if name.endswith("/"):  # Dirty hack
+                    id_body = name + "root"
                 else:
-                    id_body = match["name"]
-                match["id"] = "#" + re.sub('[^a-z0-9_]+', '_', id_body.strip().lower().replace('-', '')).strip('_')
+                    id_body = name
+                id = "#" + re.sub('[^a-z0-9_]+', '_', id_body.strip().lower().replace('-', '')).strip('_')
 
-            if match["id"][0] == "(" and match["id"][-1] == ")":
-                match["id"] = match["id"][1:-1]
+            if id[0] == "(" and id[-1] == ")":
+                id = id[1:-1]
 
-            if not match["id"].startswith("#"):  # Very, very dirty hack
-                if match["id"].endswith("/"):  # Dirty hack
-                    id_body = match["id"] + "root"
+            if not id.startswith("#"):  # Very, very dirty hack
+                if id.endswith("/"):  # Dirty hack
+                    id_body = id + "root"
                 else:
-                    id_body = match["id"]
-                match["id"] = "#" + re.sub('[^a-z0-9_]+', '_', id_body.strip().lower().replace('-', '')).strip('_')
+                    id_body = id
+                id = "#" + re.sub('[^a-z0-9_]+', '_', id_body.strip().lower().replace('-', '')).strip('_')
 
-            if match["description"]:
-                match["description"] = match["description"].strip()
-            else:
-                match["description"] = ""
-            return match
+            return (name, id)
         else:
-            raise RuntimeError("Failed to parse ID: {}".format(name))
+            raise RuntimeError("Failed to parse ID: {}".format(data))
 
 
 class ThreatLibrary(Library):
     def __init__(self, threats: Dict[str, Threat] = {}):
         self.threats = threats
 
-    def add_threat(self, name=None, run_id=None):
-        data = self.parse_name(name)
-        if isinstance(data, str):
-            return data
-        if not data["id"] in self.threats:
-            self.threats[data["id"]] = Threat(data["id"], run_id, data["name"], data["description"])  # TODO: Handle id clash
-        return data["id"]
+    def add_threat(self, data, run_id=None):
+        if isinstance(data, dict):
+            threat = data.pop("threat")
+            description = data.pop("description", "")
+        else:
+            threat = data
+            description = ""
+            data = {}
+        (name, threat_id) = self.parse_name(threat)
+        if threat_id not in self.threats:
+            self.threats[threat_id] = Threat(threat_id, run_id, name, description, data)
+        return threat_id
 
     def load(self, data, run_id=None):
         for id, threat in data["threats"].items():
-            if run_id:
-                threat["run_id"] = run_id  # Override the run ID if provided
-            if id not in self.threats:  # TODO Handle id clash
-                self.threats[id] = Threat(id, threat["run_id"], threat["name"], threat["description"])
+            if id not in self.threats:
+                if not run_id:
+                    run_id = threat.pop("run_id", "")
+                name = threat.pop("name")
+                description = threat.pop("description", "")
+                self.threats[id] = Threat(id, run_id, name, description, threat)
                 
     def save(self, run_id=None):
         data = {"threats": {}}
@@ -258,20 +299,27 @@ class ControlLibrary(Library):
     def __init__(self, controls: Dict[str, Control] = {}):
         self.controls = controls
 
-    def add_control(self, name=None, run_id=None):
-        data = self.parse_name(name)
-        if isinstance(data, str):
-            return data
-        if not data["id"] in self.controls:
-            self.controls[data["id"]] = Control(data["id"], run_id, data["name"], data["description"])
-        return data["id"]
+    def add_control(self, data, run_id=None):
+        if isinstance(data, dict):
+            control = data.pop("control")
+            description = data.pop("description", "")
+        else:
+            control = data
+            description = ""
+            data = {}
+        (name, control_id) = self.parse_name(control)
+        if control_id not in self.controls:
+            self.controls[control_id] = Control(control_id, run_id, name, description, data)
+        return control_id
 
     def load(self, data, run_id=None):
         for id, control in data["controls"].items():
-            if run_id:
-                control["run_id"] = run_id  # Override the run ID if provided
-            if id not in self.controls:  # TODO Handle id clash
-                self.controls[id] = Control(id, control["run_id"], control["name"], control["description"])
+            if id not in self.controls:
+                if not run_id:
+                    run_id = control.pop("run_id", "")
+                name = control.pop("name")
+                description = control.pop("description", "")
+                self.controls[id] = Control(id, run_id, name, description, control)
     
     def save(self, run_id=None):
         data = {"controls": {}}
@@ -287,25 +335,34 @@ class ComponentLibrary(Library):
     def __init__(self, components: Dict[str, Component] = {}):
         self.components = components
 
-    def add_component(self, name=None, run_id=None):
-        data = self.parse_name(name)
-        if isinstance(data, str):
-            return data
+    def add_component(self, data, run_id=None):
+        if isinstance(data, dict):
+            component = data.pop("component")
+            description = data.pop("description", "")
+            paths = data.pop("paths", [])
+        else:
+            component = data
+            description = ""
+            paths = []
+            data = {}
+        (name, component_id) = self.parse_name(component)
+        if component_id not in self.components:
+            self.components[component_id] = Component(component_id, run_id, name, description, paths, data)
 
-        if not data["id"] in self.components:
-            self.components[data["id"]] = Component(data["id"], run_id, data["name"], data["description"], [])
-
-        path = data["name"].split(":")[0:-1]  # Ignore the last one as that's the component itself
-        if path not in self.components[data["id"]].paths:
-            self.components[data["id"]].paths.append(path)
-        return data["id"]
+        path = name.split(":")[0:-1]  # Ignore the last one as that's the component itself
+        if path not in self.components[component_id].paths:
+            self.components[component_id].paths.append(path)
+        return component_id
 
     def load(self, data, run_id=None):
         for id, component in data["components"].items():
-            if run_id:
-                component["run_id"] = run_id  # Override the run ID if provided
-            if id not in self.components:  # TODO Handle id clash
-                self.components[id] = Component(id, component["run_id"], component["name"], component["description"], component["paths"])
+            if id not in self.components:
+                if not run_id:
+                    run_id = component.pop("run_id", "")
+                name = component.pop("name")
+                description = component.pop("description", "")
+                paths = component.pop("paths", [])
+                self.components[id] = Component(id, run_id, name, description, paths, component )
                 
     def save(self, run_id=None):
         data = {"components": {}}
@@ -341,86 +398,79 @@ class ThreatModel(Library):
         self.control_library = None
         self.component_library = None
 
-    def add_mitigation(self, threat, control, component, source):
-        self.mitigations.append(Mitigation(
-            self.control_library.add_control(control, self.run_id),
-            self.threat_library.add_threat(threat, self.run_id),
-            self.component_library.add_component(component, self.run_id),
-            Source(**source)
-        ))
+    def add_mitigation(self, data, source):
+        control = self.control_library.add_control(data.pop("control"), self.run_id)
+        threat = self.threat_library.add_threat(data.pop("threat"), self.run_id)
+        component = self.component_library.add_component(data.pop("component"), self.run_id)
+        description = data.pop("description", "")
+        self.mitigations.append(Mitigation(control, threat, component, description, data, Source(**source)))
 
-    def add_acceptance(self, threat, component, details, source):
-        self.acceptances.append(Acceptance(
-            self.threat_library.add_threat(threat, self.run_id),
-            self.component_library.add_component(component, self.run_id),
-            details,
-            Source(**source)
-        ))
+    def add_acceptance(self, data, source):
+        threat = self.threat_library.add_threat(data.pop("threat"), self.run_id)
+        component = self.component_library.add_component(data.pop("component"), self.run_id)
+        details = data.pop("details")
+        description = data.pop("description", "")
+        self.acceptances.append(Acceptance(threat, component, details, description, data, Source(**source)))
 
-    def add_transfer(self, threat, source_component, destination_component, details, source):
-        self.transfers.append(Transfer(
-            self.threat_library.add_threat(threat, self.run_id),
-            self.component_library.add_component(source_component, self.run_id),
-            self.component_library.add_component(destination_component, self.run_id),
-            details,
-            Source(**source)
-        ))
+    def add_transfer(self, data, source):
+        threat = self.threat_library.add_threat(data.pop("threat"), self.run_id)
+        source_component = self.component_library.add_component(data.pop("source_component"), self.run_id)
+        destination_component = self.component_library.add_component(data.pop("destination_component"), self.run_id)
+        details = data.pop("details")
+        description = data.pop("description", "")
+        self.transfers.append(Transfer(threat, source_component, destination_component, details, description, data, Source(**source)))
 
-    def add_exposure(self, threat, component, details, source):
-        self.exposures.append(Exposure(
-            self.threat_library.add_threat(threat, self.run_id),
-            self.component_library.add_component(component, self.run_id),
-            details,
-            Source(**source)
-        ))
+    def add_exposure(self, data, source):
+        threat = self.threat_library.add_threat(data.pop("threat"), self.run_id)
+        component = self.component_library.add_component(data.pop("component"), self.run_id)
+        details = data.pop("details")
+        description = data.pop("description", "")
+        self.exposures.append(Exposure(threat, component, details, description, data, Source(**source)))
 
-    def add_connection(self, source_component, destination_component, direction, details, source):
-        self.connections.append(Connection(
-            self.component_library.add_component(source_component, self.run_id),
-            self.component_library.add_component(destination_component, self.run_id),
-            direction,
-            details,
-            Source(**source))
-        )
+    def add_connection(self, data, source):
+        source_component = self.component_library.add_component(data.pop("source_component"), self.run_id)
+        destination_component = self.component_library.add_component(data.pop("destination_component"), self.run_id)
+        direction = data.pop("direction")
+        details = data.pop("details")
+        description = data.pop("description", "")
+        self.connections.append(Connection(source_component, destination_component, direction, details, description, data, Source(**source)))
 
-    def add_review(self, component, details, source):
-        self.reviews.append(Review(
-            self.component_library.add_component(component, self.run_id),
-            details,
-            Source(**source)
-        ))
+    def add_review(self, data, source):
+        component = self.component_library.add_component(data.pop("component"), self.run_id)
+        details = data.pop("details")
+        description = data.pop("description", "")
+        self.reviews.append(Review(component, details, description, data, Source(**source)))
 
-    def add_test(self, component, control, source):
-        self.tests.append(Test(
-            self.component_library.add_component(component, self.run_id),
-            self.control_library.add_control(control, self.run_id),
-            Source(**source)
-        ))
+    def add_test(self, data, source):
+        component = self.component_library.add_component(data.pop("component"), self.run_id)
+        control = self.control_library.add_control(data.pop("control"), self.run_id)
+        description = data.pop("description", "")
+        self.tests.append(Test(component, control, description, data, Source(**source)))
 
-    def add_threat(self, threat, source):
-        self.threat_library.add_threat(threat, self.run_id)
+    def add_threat(self, data, source):
+        self.threat_library.add_threat(data, self.run_id)
         
-    def add_control(self, control, source):
-        self.control_library.add_control(control, self.run_id)
+    def add_control(self, data, source):
+        self.control_library.add_control(data, self.run_id)
         
-    def add_component(self, component, source):
-        self.component_library.add_component(component, source)
+    def add_component(self, data, source):
+        self.component_library.add_component(data, source)
         
     def load(self, data):
         for mitigation in data["mitigations"]:
-            self.add_mitigation(**mitigation)
+            self.add_mitigation(mitigation, mitigation.pop("source"))
         for exposure in data["exposures"]:
-            self.add_exposure(**exposure)
+            self.add_exposure(exposure, exposure.pop("source"))
         for transfer in data["transfers"]:
-            self.add_transfer(**transfer)
+            self.add_transfer(transfer, transfer.pop("source"))
         for acceptance in data["acceptances"]:
-            self.add_acceptance(**acceptance)
+            self.add_acceptance(acceptance, acceptance.pop("source"))
         for connection in data["connections"]:
-            self.add_connection(**connection)
+            self.add_connection(connection, connection.pop("source"))
         for review in data["reviews"]:
-            self.add_review(**review)
+            self.add_review(review, review.pop("source"))
         for test in data["tests"]:
-            self.add_test(**test)
+            self.add_test(test, test.pop("source"))
             
     def save(self):
         return {

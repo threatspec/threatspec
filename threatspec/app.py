@@ -4,6 +4,7 @@ logger = logging.getLogger(__name__)
 import os
 import sys
 import uuid
+import magic
 from threatspec import config, data, parser, reporter, threatmodel
 
 
@@ -28,6 +29,26 @@ class ThreatSpecApp():
 
         self.loaded_source_paths = {}
         self.loaded_library_paths = {}
+
+    def get_parser_for_path(self, path, config_path):
+        if config_path.mime:
+            mime = config_path.mime
+        else:
+            mime = magic.from_file(path, mime=True)
+        _, ext = os.path.splitext(path)
+        
+        if mime == "text/plain":
+            if ext in [".yaml", ".yml"]:
+                return parser.YamlFileParser(self.threatmodel)
+            elif ext in [".json"]:
+                return parser.JsonFileParser(self.threatmodel)
+            elif ext in [".txt"]:
+                return parser.TextFileParser(self.threatmodel)
+            else:
+                logger.warn("Unsupported file extension {} for mime type text/plain for file {}".format(ext, path))
+                return None
+        else:
+            return parser.SourceFileParser(self.threatmodel, mime)
 
     def parse_source(self, paths, parent):
         for config_path in paths:
@@ -62,16 +83,9 @@ class ThreatSpecApp():
                     continue
                 logger.debug("Parsing source files in path {}".format(path))
                 if os.path.isfile(path):
-                    self.parser = parser.SourceFileParser(self.threatmodel)
-                    self.parser.parse_file(path)
-                    """
-                    if os.path.splitext(filename)[1].lower() in [".json", ".yaml"]:
-                        self.parser = parser.YamlFileParser(self.threatmodel)
-                        self.parser.parse_file(filename)
-                    else:
-                        self.parser = parser.SourceFileParser(self.threatmodel)
-                        self.parser.parse_file(filename)
-                    """
+                    self.parser = self.get_parser_for_path(path, config_path)
+                    if self.parser:
+                        self.parser.parse_file(path)
 
     def load_threat_model(self, path):
         filename = data.abs_path(path, "threatmodel", "threatmodel.json")
@@ -182,8 +196,8 @@ class ThreatSpecApp():
         self.load_threat_library_data_from_path(self.config.paths, data.cwd())
 
     def save_threat_library_data(self):
-        data.write_json_pretty(self.threat_library.save(self.threatmodel.run_id), data.cwd(), "threatmodel", "threats.json")  # TODO: Unhardcode
-        data.write_json_pretty(self.control_library.save(self.threatmodel.run_id), data.cwd(), "threatmodel", "controls.json")  # TODO: Unhardcode
+        data.write_json_pretty(self.threat_library.save(self.threatmodel.run_id), data.cwd(), "threatmodel", "threats.json")
+        data.write_json_pretty(self.control_library.save(self.threatmodel.run_id), data.cwd(), "threatmodel", "controls.json")
         data.write_json_pretty(self.component_library.save(self.threatmodel.run_id), data.cwd(), "threatmodel", "components.json")
 
     def load_threat_model_data_from_path(self, paths):
@@ -250,7 +264,7 @@ the project:
 
     threatmodel/threatmodel.json
 
-The following library files have also been create:
+The following library files have also been created:
 
     threatmodel/threats.json threatmodel/controls.json threatmodel/components.json
         """)

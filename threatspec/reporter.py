@@ -8,8 +8,65 @@ import os
 import uuid
 import textwrap
 
+
 def random_id():
     return uuid.uuid4().hex
+
+
+def left_align(text):
+    return text.replace("\n", "\l")
+
+
+def right_align(text):
+    return text.replace("\n", "\r")
+    
+    
+def wrap(text, width):
+    return textwrap.fill(text, width)
+    
+    
+def trunc_left(text, width):
+    if len(text) > width:
+        start = len(text) - (width - 3)
+        return "..." + text[start:]
+    else:
+        return text
+
+
+def trunc_right(text, width):
+    if len(text) > width:
+        return text[0:width - 3] + "..."
+    else:
+        return text
+
+
+def join(first, second):
+    if first == "":
+        return ""
+    elif first[-1] == ".":
+        joiner = " "
+    else:
+        joiner = ". "
+    return (first + joiner + second).strip()
+    
+        
+def code(block, width=None):
+    new_lines = []
+    lines = block.split("\n")
+    num_spaces = 0
+    for line in lines:
+        if line.strip() == "":
+            continue
+        else:
+            num_spaces = len(line) - len(line.lstrip(' '))
+            break
+        
+    for line in lines:
+        if width:
+            new_lines.append(trunc_right(line[num_spaces:], width))
+        else:
+            new_lines.append(line[num_spaces:])
+    return "\n".join(new_lines)
 
 
 class DataReporter():
@@ -161,8 +218,6 @@ class Graph():
             }
         )
 
-        
-
 
 class GraphvizReporter(Reporter):
 
@@ -175,7 +230,6 @@ class GraphvizReporter(Reporter):
         red = "#c0392b"
         green = "#27ae60"
         blue = "#3498db"
-        light_blue = "#7dbeff"
         orange = "#f39c12"
         purple = "#8e44ad"
         pink = "#f368e0"
@@ -223,25 +277,7 @@ class GraphvizReporter(Reporter):
                                            "arrowhead": "none" },
             "test_component_edge":       { "color": topaz }
         }
-        self.node_width = 60
-        
-    def wrap(self, text, adj=0):
-        return textwrap.fill(text, self.node_width + adj)
-        
-    def trunc(self, text, adj=0):
-        if len(text) > self.node_width:
-            start = len(text) - (self.node_width - 3 - adj)
-            return "..."+text[start:]
-        else:
-            return text
-            
-    def join(self, first, second):
-        if first[-1] == ".":
-            joiner = " "
-        else:
-            joiner = ". "
-        return (first+joiner+second).strip()
-        
+        self.node_width = 80
             
     def add_node(self, node_id, node_name, config):
         if node_id not in self.nodes:
@@ -270,22 +306,22 @@ class GraphvizReporter(Reporter):
         for threat_id, threat in self.data["threats"].items():
             if threat["description"]:
                 threat_label = "Threat\n\n{}\n\n{}".format(
-                    threat["name"],
-                    self.wrap(threat["description"])
+                    threat["name"].title(),
+                    left_align(wrap(threat["description"], self.node_width))
                 )
             else:
-                threat_label = "Threat\n\n{}".format(threat["name"])
+                threat_label = "Threat\n\n{}".format(threat["name"].title())
             self.add_node(threat_id, threat_label, self.config["threat"])
             
     def process_controls(self):
         for control_id, control in self.data["controls"].items():
             if control["description"]:
                 control_label = "Control\n\n{}\n\n{}".format(
-                    control["name"],
-                    self.wrap(control["description"])
+                    control["name"].title(),
+                    left_align(wrap(control["description"], self.node_width))
                 )
             else:
-                control_label = "Control\n\n{}".format(control["name"])
+                control_label = "Control\n\n{}".format(control["name"].title())
                 
             self.add_node(control_id, control_label, self.config["control"])
             
@@ -310,12 +346,12 @@ class GraphvizReporter(Reporter):
     def process_mitigations(self):
         for mitigation in self.data["threatmodel"]["mitigations"]:
             mitigation_id = random_id()
-            control = self.join(mitigation["control"]["name"], mitigation["control"]["description"])
+            control = join(mitigation["control"]["name"].title(), mitigation["control"]["description"])
 
             mitigation_label = "{}\n\n{}\n\nin {}:{}".format(
-                self.wrap("Threat is mitigated by control {}".format(control)),
-                self.wrap(mitigation["source"]["code"]),
-                self.trunc(mitigation["source"]["filename"], 10),
+                wrap("Threat is mitigated by control {}".format(control), self.node_width),
+                left_align(code(mitigation["source"]["code"], self.node_width - 10)),
+                trunc_left(mitigation["source"]["filename"], self.node_width - 10),
                 str(mitigation["source"]["line"])
             )
             self.add_node(mitigation_id, mitigation_label, self.config["mitigation"])
@@ -329,9 +365,9 @@ class GraphvizReporter(Reporter):
             acceptance_id = random_id()
 
             acceptance_label = "{}\n\n{}\n\nin {}:{}".format(
-                self.wrap("Threat has been accepted by {}".format(acceptance["details"])),
-                self.wrap(acceptance["source"]["code"]),
-                self.trunc(acceptance["source"]["filename"], 10),
+                wrap("Threat has been accepted by {}".format(acceptance["details"]), self.node_width),
+                left_align(code(acceptance["source"]["code"], self.node_width - 10)),
+                trunc_left(acceptance["source"]["filename"], self.node_width - 10),
                 str(acceptance["source"]["line"])
             )
             
@@ -345,9 +381,9 @@ class GraphvizReporter(Reporter):
             exposure_id = random_id()
             
             exposure_label = "{}\n\n{}\n\nin {}:{}".format(
-                self.wrap("Threat is exposed by {}".format(exposure["details"])),
-                self.wrap(exposure["source"]["code"]),
-                self.trunc(exposure["source"]["filename"], 10),
+                wrap("Threat is exposed by {}".format(exposure["details"]), self.node_width),
+                left_align(code(exposure["source"]["code"], self.node_width - 10)),
+                trunc_left(exposure["source"]["filename"], self.node_width - 10),
                 str(exposure["source"]["line"])
             )
             
@@ -361,9 +397,9 @@ class GraphvizReporter(Reporter):
             transfer_id = random_id()
             
             transfer_label = "{}\n\n{}\n\nin {}:{}".format(
-                self.wrap("Threat is transfered to another component by {}".format(transfer["details"])),
-                self.wrap(transfer["source"]["code"]),
-                self.trunc(transfer["source"]["filename"], 10),
+                wrap("Threat is transfered to another component by {}".format(transfer["details"]), self.node_width),
+                left_align(code(transfer["source"]["code"], self.node_width - 10)),
+                trunc_left(transfer["source"]["filename"], self.node_width - 10),
                 str(transfer["source"]["line"])
             )
             
@@ -377,9 +413,9 @@ class GraphvizReporter(Reporter):
         for review in self.data["threatmodel"]["reviews"]:
             review_id = random_id()
             review_label = "{}\n\n{}\n\nin {}:{}".format(
-                self.wrap("To review: {}".format(review["details"])),
-                self.wrap(review["source"]["code"]),
-                self.trunc(review["source"]["filename"], 10),
+                wrap("To review: {}".format(review["details"]), self.node_width),
+                left_align(code(review["source"]["code"], self.node_width - 10)),
+                trunc_left(review["source"]["filename"], self.node_width - 10),
                 str(review["source"]["line"])
             )
             self.add_node(review_id, review_label, self.config["review"])
@@ -397,8 +433,8 @@ class GraphvizReporter(Reporter):
             test_id = random_id()
             
             test_label = "Control is tested for component\n\n{}\n\nin {}:{}".format(
-                self.wrap(test["source"]["code"]),
-                self.trunc(test["source"]["filename"], 10),
+                left_align(code(test["source"]["code"], self.node_width - 10)),
+                trunc_left(test["source"]["filename"], self.node_width - 10),
                 str(test["source"]["line"])
             )
             self.add_node(test_id, test_label, self.config["test"])

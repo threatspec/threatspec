@@ -8,6 +8,7 @@ class Path():
     def __init__(self, obj):
         self.path = ""
         self.ignore = ""
+        self.mime = ""
 
         if isinstance(obj, str):
             self.path = obj
@@ -22,6 +23,8 @@ class Path():
                     self.ignore = obj["ignore"]
                 else:
                     raise TypeError("ignore must be a string or list")
+            if "mime" in obj:
+                self.mime = obj["mime"]
 
 
 class Config():

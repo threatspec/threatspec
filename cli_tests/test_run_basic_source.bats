@@ -16,7 +16,8 @@ project:
     name: clitest
     description: CLI test
 paths:
-    - source.js
+    - path: "source.js"
+      mime: "text/x-javascript"
 EOF
 
   mkdir -p threatmodel
