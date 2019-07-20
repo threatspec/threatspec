@@ -1,4 +1,4 @@
-# threatspec
+# threatspec - continuous threat modeling, through code
 
 [![Build Status](https://travis-ci.org/threatspec/threatspec.svg?branch=master)](https://travis-ci.org/threatspec/threatspec)
 [![PyPI version fury.io](https://badge.fury.io/py/threatspec.svg)](https://pypi.python.org/pypi/threatspec/)
