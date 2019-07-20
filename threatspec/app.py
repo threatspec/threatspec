@@ -239,7 +239,7 @@ class ThreatSpecApp():
 Threatspec has been initialised. You can now configure the project in this
 repository by editing the following file:
 
-    threatspec.yaml.
+    threatspec.yaml
         """)
 
     def run(self):

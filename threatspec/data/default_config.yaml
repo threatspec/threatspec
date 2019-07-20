@@ -10,5 +10,7 @@ paths:                                 # Paths to process. If a threatspec.yaml 
 # - 'path/to/repo2'                    # ... and you can do this as much as you like
 # - 'path/to/source/file.go'           # You can directly reference source code files and directories
 # - path: 'path/to/node_source         # You can also provide ignore paths for a path by providing a dictionary
-#   ignore:                            # Any sub-paths defined in this arrary are ignored as source files within the path are recursively parsed
+#   ignore:                            # Any sub-paths defined in this array are ignored as source files within the path are recursively parsed
 #     - 'node_modules'
+# - path: 'path/to/config.py'
+#   mime: 'text/x-python'              # You can explicitly set the mime type for files if needed

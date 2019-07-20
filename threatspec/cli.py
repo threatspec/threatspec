@@ -32,7 +32,7 @@ def configure_logger(level, verbose):
 @click.version_option()
 def cli(log_level, verbose):
     """
-    threatspec - threat modeling as code
+    threatspec - continuous threat modeling, through code
 
     threatspec is an open source project that aims to close the gap between
     development and security by bringing the threat modelling process further
