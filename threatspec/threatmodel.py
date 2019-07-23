@@ -25,6 +25,16 @@ class Threat():
         self.name = name
         self.description = description
         self.custom = custom
+        
+    def update(self, run_id: str, name: str, description: str, custom: dict):
+        if run_id:
+            self.run_id = run_id
+        if name:
+            self.name = name
+        if description:
+            self.description = description
+        if custom:
+            self.custom.update(custom)
 
     def as_dict(self):
         return {
@@ -43,6 +53,16 @@ class Control():
         self.name = name
         self.description = description
         self.custom = custom
+
+    def update(self, run_id: str, name: str, description: str, custom: dict):
+        if run_id:
+            self.run_id = run_id
+        if name:
+            self.name = name
+        if description:
+            self.description = description
+        if custom:
+            self.custom.update(custom)
         
     def as_dict(self):
         return {
@@ -62,7 +82,19 @@ class Component():
         self.description = description
         self.paths = paths
         self.custom = custom
-
+        
+    def update(self, run_id: str, name: str, description: str, paths: List[str], custom: dict):
+        if run_id:
+            self.run_id = run_id
+        if name:
+            self.name = name
+        if description:
+            self.description = description
+        if paths:
+            self.paths = paths
+        if custom:
+            self.custom.update(custom)
+            
     def as_dict(self):
         return {
             "id": self.id,
@@ -272,7 +304,11 @@ class ThreatLibrary(Library):
             description = ""
             data = {}
         (name, threat_id) = self.parse_name(threat)
-        if threat_id not in self.threats:
+        if threat_id in self.threats:
+            if threat_id != name:
+                # We haven't been given a reference to an existing threat
+                self.threats[threat_id].update(run_id, name, description, data)
+        else:
             self.threats[threat_id] = Threat(threat_id, run_id, name, description, data)
         return threat_id
 
@@ -283,7 +319,11 @@ class ThreatLibrary(Library):
                     run_id = threat.pop("run_id", "")
                 name = threat.pop("name")
                 description = threat.pop("description", "")
-                self.threats[id] = Threat(id, run_id, name, description, threat)
+                if "custom" in threat:
+                    custom = threat["custom"]
+                else:
+                    custom = threat
+                self.threats[id] = Threat(id, run_id, name, description, custom)
                 
     def save(self, run_id=None):
         data = {"threats": {}}
@@ -308,7 +348,11 @@ class ControlLibrary(Library):
             description = ""
             data = {}
         (name, control_id) = self.parse_name(control)
-        if control_id not in self.controls:
+        if control_id in self.controls:
+            if control_id != name:
+                # We haven't just been given a reference to an existing control
+                self.controls[control_id].update(run_id, name, description, data)
+        else:
             self.controls[control_id] = Control(control_id, run_id, name, description, data)
         return control_id
 
@@ -319,7 +363,11 @@ class ControlLibrary(Library):
                     run_id = control.pop("run_id", "")
                 name = control.pop("name")
                 description = control.pop("description", "")
-                self.controls[id] = Control(id, run_id, name, description, control)
+                if "custom" in control:
+                    custom = control["custom"]
+                else:
+                    custom = control
+                self.controls[id] = Control(id, run_id, name, description, custom)
     
     def save(self, run_id=None):
         data = {"controls": {}}
@@ -346,7 +394,11 @@ class ComponentLibrary(Library):
             paths = []
             data = {}
         (name, component_id) = self.parse_name(component)
-        if component_id not in self.components:
+        if component_id in self.components:
+            if component_id != name:
+                # We haven't just been given a reference to an existing component
+                self.components[component_id].update(run_id, name, description, paths, data)
+        else:
             self.components[component_id] = Component(component_id, run_id, name, description, paths, data)
 
         path = name.split(":")[0:-1]  # Ignore the last one as that's the component itself
@@ -362,7 +414,11 @@ class ComponentLibrary(Library):
                 name = component.pop("name")
                 description = component.pop("description", "")
                 paths = component.pop("paths", [])
-                self.components[id] = Component(id, run_id, name, description, paths, component )
+                if "custom" in component:
+                    custom = component["custom"]
+                else:
+                    custom = component
+                self.components[id] = Component(id, run_id, name, description, paths, custom)
                 
     def save(self, run_id=None):
         data = {"components": {}}
@@ -403,14 +459,22 @@ class ThreatModel(Library):
         threat = self.threat_library.add_threat(data.pop("threat"), self.run_id)
         component = self.component_library.add_component(data.pop("component"), self.run_id)
         description = data.pop("description", "")
-        self.mitigations.append(Mitigation(control, threat, component, description, data, Source(**source)))
+        if "custom" in data:
+            custom = data["custom"]
+        else:
+            custom = data
+        self.mitigations.append(Mitigation(control, threat, component, description, custom, Source(**source)))
 
     def add_acceptance(self, data, source):
         threat = self.threat_library.add_threat(data.pop("threat"), self.run_id)
         component = self.component_library.add_component(data.pop("component"), self.run_id)
         details = data.pop("details")
         description = data.pop("description", "")
-        self.acceptances.append(Acceptance(threat, component, details, description, data, Source(**source)))
+        if "custom" in data:
+            custom = data["custom"]
+        else:
+            custom = data
+        self.acceptances.append(Acceptance(threat, component, details, description, custom, Source(**source)))
 
     def add_transfer(self, data, source):
         threat = self.threat_library.add_threat(data.pop("threat"), self.run_id)
@@ -418,14 +482,22 @@ class ThreatModel(Library):
         destination_component = self.component_library.add_component(data.pop("destination_component"), self.run_id)
         details = data.pop("details")
         description = data.pop("description", "")
-        self.transfers.append(Transfer(threat, source_component, destination_component, details, description, data, Source(**source)))
+        if "custom" in data:
+            custom = data["custom"]
+        else:
+            custom = data
+        self.transfers.append(Transfer(threat, source_component, destination_component, details, description, custom, Source(**source)))
 
     def add_exposure(self, data, source):
         threat = self.threat_library.add_threat(data.pop("threat"), self.run_id)
         component = self.component_library.add_component(data.pop("component"), self.run_id)
         details = data.pop("details")
         description = data.pop("description", "")
-        self.exposures.append(Exposure(threat, component, details, description, data, Source(**source)))
+        if "custom" in data:
+            custom = data["custom"]
+        else:
+            custom = data
+        self.exposures.append(Exposure(threat, component, details, description, custom, Source(**source)))
 
     def add_connection(self, data, source):
         source_component = self.component_library.add_component(data.pop("source_component"), self.run_id)
@@ -433,19 +505,31 @@ class ThreatModel(Library):
         direction = data.pop("direction")
         details = data.pop("details")
         description = data.pop("description", "")
-        self.connections.append(Connection(source_component, destination_component, direction, details, description, data, Source(**source)))
+        if "custom" in data:
+            custom = data["custom"]
+        else:
+            custom = data
+        self.connections.append(Connection(source_component, destination_component, direction, details, description, custom, Source(**source)))
 
     def add_review(self, data, source):
         component = self.component_library.add_component(data.pop("component"), self.run_id)
         details = data.pop("details")
         description = data.pop("description", "")
-        self.reviews.append(Review(component, details, description, data, Source(**source)))
+        if "custom" in data:
+            custom = data["custom"]
+        else:
+            custom = data
+        self.reviews.append(Review(component, details, description, custom, Source(**source)))
 
     def add_test(self, data, source):
         component = self.component_library.add_component(data.pop("component"), self.run_id)
         control = self.control_library.add_control(data.pop("control"), self.run_id)
         description = data.pop("description", "")
-        self.tests.append(Test(component, control, description, data, Source(**source)))
+        if "custom" in data:
+            custom = data["custom"]
+        else:
+            custom = data
+        self.tests.append(Test(component, control, description, custom, Source(**source)))
 
     def add_threat(self, data, source):
         self.threat_library.add_threat(data, self.run_id)

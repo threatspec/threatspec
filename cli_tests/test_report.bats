@@ -135,12 +135,11 @@ teardown() {
 
 @test "report only contains one mitigation" {
   assert_file_exists "ThreatModel.md"
-  assert_file_contains_count "ThreatModel.md" "unauthorised access" "==1"
-  refute_file_contains "ThreatModel.md" "arbitrary file writes"
+  assert_file_contains_count "ThreatModel.md" "Unauthorised access against" "==1"
 }
 
 @test "report doesn't include unused library objects" {
   assert_file_exists "ThreatModel.md"
-  assert_file_contains "ThreatModel.md" "unauthorised access"
-  refute_file_contains "ThreatModel.md" "arbitrary file writes"
+  assert_file_contains "ThreatModel.md" "Unauthorised access against"
+  refute_file_contains "ThreatModel.md" "Arbitrary file writes against"
 }
