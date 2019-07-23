@@ -432,7 +432,7 @@ Finally, components bring with them a challenge of identity. How do we know that
 
 ### Identifiers
 
-Identifies are short-hand ways of referring to unique threats, components or controls (which we'll refer to as library objects). When parsing annotations, threatspec generates an ID for each new library object, and if the ID isn't known, it adds the new object to the respective library. You can also refer directly to the library object using the ID. To do this, you can specify an explicit ID by putting it in parentheses. For example, you can reference the threat `SQL Injection (#sqli)` simply as `#sqli` instead of `SQL Injection`. Anything that comes after the ID but before other parts of an annotation is treated as extra details that don't apply to the general library component.
+Identifies are short-hand ways of referring to unique threats, components or controls (which we'll refer to as library objects). When parsing annotations, threatspec generates an ID for each new library object, and if the ID isn't known, it adds the new object to the respective library. You can also refer directly to the library object using the ID. To do this, you can specify an explicit ID by putting it in parentheses. For example, you can reference the threat `SQL Injection (#sqli)` simply as `#sqli` instead of `SQL Injection`.
 
 ### Mitigates
 
@@ -463,7 +463,7 @@ Pattern: `@accepts (?P<threat>.*?) to (?P<component>.*?) with (?P<details>.*)`
 Examples:
 
 * `@accepts file is read by system users to MyApp:Configuration with only admin users have system access`
-* `@accepts data breach of publicly available information to MyApp:AWS:S3:CustomerData with low chance of bucket is discovered by attacker` (BAD IDEA!!)
+* `@accepts data breach of publicly available information to MyApp:AWS:S3:CustomerData with low chance of bucket is discovered by attacker`
 * `@accepts #api_info_diclosure to MyService:/api with version information isn't sensitive`
 
 ```
