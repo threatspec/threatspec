@@ -3,6 +3,7 @@ logger = logging.getLogger(__name__)
 
 import re
 import yaml
+import json
 from comment_parser import comment_parser
 
 
@@ -171,8 +172,67 @@ class SourceFileParser(Parser):
 
 
 class YamlFileParser(Parser):
+    def parse_annotation(self, annotation, data={}):
+        stripped_line = annotation.strip()
+        for action in self.patterns.keys():
+            if stripped_line.startswith("@" + action):
+                data["action"] = action
+                pattern = self.patterns[action]
+                m = re.match(pattern, stripped_line, re.M | re.I)
+                if m:
+                    data.update(m.groupdict())
+                    return data
+                else:
+                    raise Exception("Could not parse {} pattern:\n{} for comment line:\n{}".format(action, pattern, line))
+                
+    def parse_key(self, data, parent, filename):
+        if isinstance(data, str):
+            annotation = self.parse_annotation(data)
+            source = {
+                "annotation": data,
+                "code": json.dumps(parent, indent=2),
+                "filename": filename,
+                "line": 0
+            }
+            self.run_action(annotation, source)
+        elif isinstance(data, list):
+            for v in data:
+                if not isinstance(v, str):
+                    raise Exception("Invalid value type for x-threatspec list in {}".format(filename))
+                annotation = self.parse_annotation(v)
+                source = {
+                    "annotation": v,
+                    "code": json.dumps(parent, indent=2),
+                    "filename": filename,
+                    "line": 0
+                }
+                self.run_action(annotation, source)
+        elif isinstance(data, dict):
+            for k, v in data.items():
+                annotation = self.parse_annotation(k, v)
+                source = {
+                    "annotation": k,
+                    "code": json.dumps(parent, indent=2),
+                    "filename": filename,
+                    "line": 0
+                }
+                self.run_action(annotation, source)
+
+    def parse_data(self, data, parent, filename):
+        if isinstance(data, dict):
+            for k, v in data.items():
+                if k == "x-threatspec":
+                    self.parse_key(v, data, filename)
+                else:
+                    self.parse_data(v, data, filename)
+        elif isinstance(data, list):
+            for v in data:
+                self.parse_data(v, data, filename)
+    
     def parse_file(self, filename):
-        pass
+        with open(filename) as fh:
+            file_data = yaml.load(fh, Loader=yaml.SafeLoader)
+            self.parse_data(file_data, {}, filename)
     
     
 class JsonFileParser(Parser):
@@ -183,24 +243,3 @@ class JsonFileParser(Parser):
 class TextFileParser(Parser):
     def parse_file(self, filename):
         pass
-    
-    """
-class YamlFileParser(Parser):
-    def parse_data(self, data, parent, filename):
-        if isinstance(data, dict):
-            for k, v in data.items():
-                if k == "x-threatspec":
-                    for action in self.patterns.keys():
-                        if v.startswith("@"+action):
-                            self.parse(action, v, str(parent), filename, 0)
-                else:
-                    self.parse_data(v, data, filename)
-        elif isinstance(data, list):
-            for v in data:
-                self.parse_data(v, data, filename)
-
-    def parse_file(self, filename):
-        with open(filename) as fh:
-            file_data = yaml.load(fh, Loader=yaml.SafeLoader)
-            self.parse_data(file_data, {}, filename)
-"""
