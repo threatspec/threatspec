@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 import re
 import yaml
 from comment_parser import comment_parser
-from pprint import pprint
+
 
 class Parser():
     def __init__(self, threatmodel):
@@ -184,7 +184,6 @@ class TextFileParser(Parser):
     def parse_file(self, filename):
         pass
     
-
     """
 class YamlFileParser(Parser):
     def parse_data(self, data, parent, filename):

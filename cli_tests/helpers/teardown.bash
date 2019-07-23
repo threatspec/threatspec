@@ -11,10 +11,8 @@ teardown_common() {
     if [ -f "ThreatModel.md" ]; then
         rm ThreatModel.md
     fi
-    if [ -f "ThreatModel.gv" ]; then
-        rm ThreatModel.gv
-    fi
-    if [ -f "ThreatModel.gv.png" ]; then
-        rm ThreatModel.gv.png
+    
+    if [ -f "ThreatModel.md.png" ]; then
+        rm ThreatModel.md.png
     fi
 }
