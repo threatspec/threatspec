@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 import re
 import yaml
 from comment_parser import comment_parser
-
+from pprint import pprint
 
 class Parser():
     def __init__(self, threatmodel):
@@ -72,6 +72,7 @@ class SourceFileParser(Parser):
                 for action in self.patterns.keys():
                     if stripped_line.startswith("@" + action):
                         data = {"action": action}
+                        extended_lines = []
                         pattern = self.patterns[action]
                         if self.is_extended(stripped_line):
                             state = EXTENDED
@@ -94,20 +95,26 @@ class SourceFileParser(Parser):
                     extended_lines.append(line)
         return annotations
     
-    def extract_comment_context(self, lines, commented_lines, start_line, num_lines):
+    def extract_comment_context(self, lines, commented_lines, start_line, num_lines, multiline=False):
         count = 0
         i = start_line
         code = []
         
+        capture_first_line = not multiline
+            
         for line in lines[start_line - 1:]:
             if count >= num_lines:
                 return "".join(code)
+            
+            if capture_first_line:
+                code.append(line)
+                capture_first_line = False
                 
             if i not in commented_lines:
                 code.append(line)
                 count += 1
             i += 1
-        return ""
+        return "".join(code)
     
     def get_lines(self, filename):
         try:
@@ -138,7 +145,8 @@ class SourceFileParser(Parser):
                 comments.append({
                     "text": comment_text,
                     "line": comment_line,
-                    "offset": offset
+                    "offset": offset,
+                    "multiline": comment.is_multiline()
                 })
         except comment_parser.UnsupportedError as e:
             print(e)
@@ -147,7 +155,7 @@ class SourceFileParser(Parser):
         for comment in comments:
             comment["text"] = comment["text"].strip()
             num_lines = 5  # Get 5 lines of code
-            code = self.extract_comment_context(lines, commented_line_numbers, comment["line"] + comment["offset"], num_lines)
+            code = self.extract_comment_context(lines, commented_line_numbers, comment["line"] + comment["offset"], num_lines, comment["multiline"])
 
             source = {
                 "annotation": comment["text"],
