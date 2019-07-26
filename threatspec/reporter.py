@@ -424,7 +424,7 @@ class GraphvizReporter(Reporter):
     
     def process_connections(self):
         for connection in self.data["threatmodel"]["connections"]:
-            cfg = self.config["connection_edge"]
+            cfg = self.config["connection_edge"].copy()
             cfg["label"] = connection["details"]
             self.add_edge(connection["source_component"]["id"], connection["destination_component"]["id"], cfg)
     

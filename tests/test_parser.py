@@ -1,7 +1,6 @@
 import pytest
 from threatspec import parser, threatmodel
-from pprint import pprint
-
+import yaml
 
 def test_source_file_parser_parse_comments():
     t = threatmodel.ThreatModel()
@@ -10,7 +9,7 @@ def test_source_file_parser_parse_comments():
     comments = [{
             "test": "@mitigates Path:To:Component against a multi word threat with a multi word control",
             "result": {
-                "action": "mitigates",
+                "action": "mitigate",
                 "component": "Path:To:Component",
                 "threat": "a multi word threat",
                 "control": "a multi word control"
@@ -18,7 +17,7 @@ def test_source_file_parser_parse_comments():
         }, {
             "test": "@accepts a multi word threat to Path:To:Component with why it has been accepted",
             "result": {
-                "action": "accepts",
+                "action": "accept",
                 "threat": "a multi word threat",
                 "component": "Path:To:Component",
                 "details": "why it has been accepted"
@@ -26,7 +25,7 @@ def test_source_file_parser_parse_comments():
         }, {
             "test": "@transfers a multi word threat from Path:To:Source to Path:To:Destination with why it has been transfered",
             "result": {
-                "action": "transfers",
+                "action": "transfer",
                 "threat": "a multi word threat",
                 "source_component": "Path:To:Source",
                 "destination_component": "Path:To:Destination",
@@ -35,7 +34,7 @@ def test_source_file_parser_parse_comments():
         }, {
             "test": "@exposes Path:To:Component to a multi word threat with how it is exposed",
             "result": {
-                "action": "exposes",
+                "action": "expose",
                 "threat": "a multi word threat",
                 "component": "Path:To:Component",
                 "details": "how it is exposed"
@@ -43,7 +42,7 @@ def test_source_file_parser_parse_comments():
         }, {
             "test": "@connects Path:To:Source with Path:To:Destination with details about connection",
             "result": {
-                "action": "connects",
+                "action": "connect",
                 "source_component": "Path:To:Source",
                 "destination_component": "Path:To:Destination",
                 "direction": "with",
@@ -59,7 +58,7 @@ def test_source_file_parser_parse_comments():
         }, {
             "test": "@tests a multi word control for Path:To:Component",
             "result": {
-                "action": "tests",
+                "action": "test",
                 "control": "a multi word control",
                 "component": "Path:To:Component"
             }
@@ -68,68 +67,10 @@ def test_source_file_parser_parse_comments():
     for comment in comments:
         data = p.parse_comment(comment["test"])
         assert len(data) == 1
+        data[0].pop("annotation")
+        data[0].pop("line")
         assert data[0] == comment["result"]
 
-"""
-def test_parse_comment_line():
-    t = threatmodel.ThreatModel()
-    p = parser.SourceFileParser(t)
-
-    c = [{
-            "line": "// A normal comment",
-            "annotation": "A normal comment",
-            "code": ""
-        }, {
-            "line": "somecode.action(parameter) // An inline comment",
-            "annotation": "An inline comment",
-            "code": "somecode.action(parameter)"
-        }, {
-            "line": "# A normal comment",
-            "annotation": "A normal comment",
-            "code": ""
-        }, {
-            "line": "somecode.action(parameter) # An inline comment",
-            "annotation": "An inline comment",
-            "code": "somecode.action(parameter)"
-        }]
-
-    for line in lines:
-        (annotation, code) = p.parse_comment_line(line["line"])
-        assert line["code"] == code
-        assert line["annotation"] == annotation
-
-def test_parse_line():
-    t = threatmodel.ThreatModel()
-    p = parser.SourceFileParser(t)
-
-    lines = [{
-        "line": "somecode.action(parameter) // @mitigates Path:To:Component against Threat with Control",
-        "next_line": "other.action(parameter) // @mitigates Path:To:Component2 against Threat2 with Control2",
-        "action": "mitigates",
-        "threat": "Threat",
-        "component": "Path:To:Component",
-        "control": "Control",
-        "annotation": "@mitigates Path:To:Component against Threat with Control",
-        "code": "somecode.action(parameter)",
-        "filename": "afile.js",
-        "line_no": 66
-    }]
-
-    for line in lines:
-        (data, source) = p.parse_line(line["line"], line["next_line"], line["filename"], line["line_no"])
-        assert data == {
-            "action": "mitigates",
-            "threat": "Threat",
-            "component": "Path:To:Component",
-            "control": "Control"
-        }
-        assert source == {
-            "annotation": line["annotation"],
-            "code": line["code"],
-            "filename": line["filename"],
-            "line": line["line_no"]
-        }
-"""
 
 def test_parse_threat_extended_comment():
     t = threatmodel.ThreatModel()
@@ -183,3 +124,38 @@ def test_parse_component_extended_comment():
     assert annotations[0]["component"] == "Path:To:Component (#componentid)"
     assert annotations[0]["description"] == "A multiline\ndescription\n"
     assert annotations[0]["value"] == "high"
+
+def test_yaml_paser():
+    t = threatmodel.ThreatModel()
+    t.threat_library = threatmodel.ThreatLibrary()
+    p = parser.YamlFileParser(t)
+    
+    yaml_string = """
+        key1:
+            key11:
+                x-threatspec: "@threat A string threat"
+            key12:
+                x-threatspec:
+                    - "@threat Array threat 1"
+                    - "@threat Array threat 2"
+        key2:
+            key21:
+                key211:
+                    "x-threatspec":
+                        "@threat Extended threat 1":
+                            description: Extended description 1
+                            impact: high
+    """
+    
+    data = yaml.load(yaml_string, Loader=yaml.SafeLoader)
+    p.parse_data(data, {}, "path/to/file")
+    
+    assert len(t.threat_library.threats) == 4
+    
+    assert "#a_string_threat" in t.threat_library.threats
+    assert t.threat_library.threats["#a_string_threat"].name == "A string threat"
+    
+    assert "#extended_threat_1" in t.threat_library.threats
+    assert t.threat_library.threats["#extended_threat_1"].custom["impact"] == "high"
+    
+    

@@ -41,7 +41,7 @@ class ThreatSpecApp():
             if ext in [".yaml", ".yml"]:
                 return parser.YamlFileParser(self.threatmodel)
             elif ext in [".json"]:
-                return parser.JsonFileParser(self.threatmodel)
+                return parser.YamlFileParser(self.threatmodel)
             elif ext in [".txt"]:
                 return parser.TextFileParser(self.threatmodel)
             else:
@@ -313,7 +313,7 @@ The following library files have also been created:
             report = reporter.TextReporter(report_data.data)
             report.generate(file)
             logger.info("The following threat model text file has been created: {}".format(file))
-            
+
         elif output.lower() == "json":
             if not file:
                 file = "ThreatModel.json"
