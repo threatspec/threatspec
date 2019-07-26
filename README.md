@@ -144,7 +144,7 @@ If the MIME type for a file can't be determined, or if it is incorrect, you can 
 
 ### Comment types
 
-There are three main comment types supported by threatspec.
+There are four main comment types supported by threatspec.
 
 #### Single-line
 
@@ -189,10 +189,33 @@ func (p *Page) save() error {
 
 #### Inline
 
-Finally, you can add comments to the end of lines that also contain code. This can be useful, but might result in rather long lines. Probably best to use these for @review annotations.
+You can add comments to the end of lines that also contain code. This can be useful, but might result in rather long lines. Probably best to use these for @review annotations.
 
 ```
         err = ioutil.WriteFile("final-port.txt", []byte(l.Addr().String()), 0644) // @review WebApp:Web Is this a security feature?
+```
+
+#### YAML and JSON
+
+Finally, the last comment type isn't really a comment at all. Rather, it's addtional keys in JSON or YAML data files using the `x-threatspec` extension key. This was primarily chosen to be compatible with OpenAPI/Swagger files but might work in other circumstances. The rest of the threatspec annotation is essentially the same. So a very simple example would be something like:
+
+```
+servers:
+  - url: http://petstore.swagger.io/v1
+    x-threatspec: "@exposes Petstore:Web to Man in the Middle (#mitm) with lack of TLS"
+```
+
+A more complete example using the extended syntax just uses the threatspec annotation as a key:
+
+```
+    post:
+      summary: Create a pet
+      operationId: createPets
+      tags:
+        - pets
+      x-threatspec:
+        "@exposes Petstore:Pet:Create to Creation of fake pets with lack of authentication":
+          description: "Any anonymous user can create a pet because there is no authentication and authorization"
 ```
 
 ### Summary of annotations

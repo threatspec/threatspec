@@ -9,7 +9,7 @@ def test_source_file_parser_parse_comments():
     comments = [{
             "test": "@mitigates Path:To:Component against a multi word threat with a multi word control",
             "result": {
-                "action": "mitigates",
+                "action": "mitigate",
                 "component": "Path:To:Component",
                 "threat": "a multi word threat",
                 "control": "a multi word control"
@@ -17,7 +17,7 @@ def test_source_file_parser_parse_comments():
         }, {
             "test": "@accepts a multi word threat to Path:To:Component with why it has been accepted",
             "result": {
-                "action": "accepts",
+                "action": "accept",
                 "threat": "a multi word threat",
                 "component": "Path:To:Component",
                 "details": "why it has been accepted"
@@ -25,7 +25,7 @@ def test_source_file_parser_parse_comments():
         }, {
             "test": "@transfers a multi word threat from Path:To:Source to Path:To:Destination with why it has been transfered",
             "result": {
-                "action": "transfers",
+                "action": "transfer",
                 "threat": "a multi word threat",
                 "source_component": "Path:To:Source",
                 "destination_component": "Path:To:Destination",
@@ -34,7 +34,7 @@ def test_source_file_parser_parse_comments():
         }, {
             "test": "@exposes Path:To:Component to a multi word threat with how it is exposed",
             "result": {
-                "action": "exposes",
+                "action": "expose",
                 "threat": "a multi word threat",
                 "component": "Path:To:Component",
                 "details": "how it is exposed"
@@ -42,7 +42,7 @@ def test_source_file_parser_parse_comments():
         }, {
             "test": "@connects Path:To:Source with Path:To:Destination with details about connection",
             "result": {
-                "action": "connects",
+                "action": "connect",
                 "source_component": "Path:To:Source",
                 "destination_component": "Path:To:Destination",
                 "direction": "with",
@@ -58,7 +58,7 @@ def test_source_file_parser_parse_comments():
         }, {
             "test": "@tests a multi word control for Path:To:Component",
             "result": {
-                "action": "tests",
+                "action": "test",
                 "control": "a multi word control",
                 "component": "Path:To:Component"
             }
@@ -67,6 +67,8 @@ def test_source_file_parser_parse_comments():
     for comment in comments:
         data = p.parse_comment(comment["test"])
         assert len(data) == 1
+        data[0].pop("annotation")
+        data[0].pop("line")
         assert data[0] == comment["result"]
 
 
