@@ -11,6 +11,10 @@
       },
       "required": ["name", "description"]
     },
+    "imports": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/import" }
+    },
     "paths": {
       "type": "array",
       "items": { "$ref": "#/definitions/path" }
@@ -24,6 +28,13 @@
         "path": { "type": "string" },
         "ignore": { "type": ["string", "array"], "items": { "type": "string" } },
         "mime": { "type": "string" }
+      },
+      "required": ["path"]
+    },
+    "import": {
+      "type": ["string", "object"],
+      "properties": {
+        "path": { "type": "string" }
       },
       "required": ["path"]
     },

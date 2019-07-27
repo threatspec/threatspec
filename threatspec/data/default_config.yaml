@@ -4,9 +4,11 @@
 project:
   name: "threatspec project"           # Name of your project. This might be you application name or a friendly name for the code repository.
   description: "A threatspec project." # A description of the project. This will be used in the markdown report as well as the name.
-paths:                                 # Paths to process. If a threatspec.yaml file exists, library data source paths are loaded recursively.
+imports:                               # Import other threatspec projects into this one.
+  - './'                               # Current directory isn't strictly necessary as this is processed anyway. Just here as an example.
+paths:                                 # Source code paths to process
   - './'                               # Parse source files in the current directory by default.
-# - 'path/to/repo1'                    # You can refer to other threatspec repositories and respective threatspec.yaml files are loaded.
+# - 'path/to/repo1'                    # You can refer to other repositories or directories as needed
 # - 'path/to/repo2'                    # ... and you can do this as much as you like
 # - 'path/to/source/file.go'           # You can directly reference source code files and directories
 # - path: 'path/to/node_source         # You can also provide ignore paths for a path by providing a dictionary
