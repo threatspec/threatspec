@@ -40,9 +40,11 @@ You can configure threatspec by editing the `threatspec.yaml` configuration file
 project:
   name: "threatspec project"           # Name of your project. This might be you application name or a friendly name for the code repository.
   description: "A threatspec project." # A description of the project. This will be used in the markdown report as well as the name.
-paths:                                 # Paths to process. If a threatspec.yaml file exists, library data source paths are loaded recursively.
+imports:                               # Import other threatspec projects into this one.
+  - './'                               # Current directory isn't strictly necessary as this is processed anyway. Just here as an example.
+paths:                                 # Source code paths to process
   - './'                               # Parse source files in the current directory by default.
-# - 'path/to/repo1'                    # You can refer to other threatspec repositories and respective threatspec.yaml files are loaded.
+# - 'path/to/repo1'                    # You can refer to other repositories or directories as needed
 # - 'path/to/repo2'                    # ... and you can do this as much as you like
 # - 'path/to/source/file.go'           # You can directly reference source code files and directories
 # - path: 'path/to/node_source         # You can also provide ignore paths for a path by providing a dictionary
@@ -357,7 +359,7 @@ When you first use threatspec, you'll likely initialise it in a code repository 
 
 ### Across multiple repositories
 
-As your code base or use of threatspec grows, you may need to generate the bigger threat modeling picture from multiple repositories. These could be different repositories for the same application, but could also be entirely different applications. Or, a mixture of application and infrastructure deployment repositories. At this stage you may want to create a new repository specifically for threatspec that has a configuration file that points to various other repositories. When threatspec processes the configuration file, in looks in each path for a `threatspec.yaml` file and processes those respectively. This allows you to "glue" multiple repositories together into a single view.
+As your code base or use of threatspec grows, you may need to generate the bigger threat modeling picture from multiple repositories. These could be different repositories for the same application, but could also be entirely different applications. Or, a mixture of application and infrastructure deployment repositories. At this stage you may want to create a new repository specifically for threatspec that has a configuration file that points to various other repositories. When threatspec processes the `imports` section of the configuration file, it loads the threat model and library files from each import path. This allows you to "glue" multiple repositories together into a single view.
 
 Let's say you had the following repositories, each containing a `threatspec.yaml` file and annotations within their source files:
 
@@ -372,11 +374,13 @@ In this example, auth-service would be a service shared across the organisation.
 project:
   name: MyApp
   description: My Application Service
-paths:
+imports:
   - ../myapp-api
   - ../myapp-web
   - ../myapp-deployment
   - ../auth-service
+paths:
+  - ./
 ```
 
 Running threatspec in the myapp-threatmodel repo would generate a threat model report across the entire MyApp code base, but also including the auth service.
