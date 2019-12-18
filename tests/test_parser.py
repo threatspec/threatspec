@@ -75,7 +75,7 @@ def test_source_file_parser_parse_comments():
 def test_parse_threat_extended_comment():
     t = threatmodel.ThreatModel()
     p = parser.SourceFileParser(t)
-    
+
     comment_text = """
 @threat A Threat (#threatid):
   description: |
@@ -93,7 +93,7 @@ def test_parse_threat_extended_comment():
 def test_parse_control_extended_comment():
     t = threatmodel.ThreatModel()
     p = parser.SourceFileParser(t)
-    
+
     comment_text = """
 @control A Control (#controlid):
   description: |
@@ -107,11 +107,11 @@ def test_parse_control_extended_comment():
     assert annotations[0]["description"] == "A multiline\ndescription\n"
     assert annotations[0]["cost"] == "high"
 
-    
+
 def test_parse_component_extended_comment():
     t = threatmodel.ThreatModel()
     p = parser.SourceFileParser(t)
-    
+
     comment_text = """
 @component Path:To:Component (#componentid):
   description: |
@@ -125,11 +125,71 @@ def test_parse_component_extended_comment():
     assert annotations[0]["description"] == "A multiline\ndescription\n"
     assert annotations[0]["value"] == "high"
 
+def test_parse_component_extended_comment_with_leading_stars():
+    t = threatmodel.ThreatModel()
+    p = parser.SourceFileParser(t)
+
+    comment_text = """
+         * @component Path:To:Component (#componentid):
+         * description: |
+         *   A multiline
+         *   description
+         * value: high
+"""
+    annotations = p.parse_comment(comment_text)
+    assert len(annotations) == 1
+    assert annotations[0]["component"] == "Path:To:Component (#componentid)"
+    assert annotations[0]["description"] == "A multiline\ndescription\n"
+    assert annotations[0]["value"] == "high"
+
+def test_parse_review_extended_comment_with_leading_stars():
+    t = threatmodel.ThreatModel()
+    p = parser.SourceFileParser(t)
+
+    comment_text = """
+         * @review Path:To:Component Check something:
+         *   description: |
+         *     A multiline
+         *     description
+         *   urgent: yes
+"""
+    annotations = p.parse_comment(comment_text)
+    assert len(annotations) == 1
+    assert annotations[0]["component"] == "Path:To:Component"
+    assert annotations[0]["details"] == "Check something"
+    assert annotations[0]["description"] == "A multiline\ndescription\n"
+    assert annotations[0]["urgent"] == True
+
+def test_strip_stars():
+    t = threatmodel.ThreatModel()
+    t.threat_library = threatmodel.ThreatLibrary()
+    p = parser.CommentParser(t)
+
+    assert p.strip_stars("* test ") == " test "
+    assert p.strip_stars(" * test ") == " test "
+    assert p.strip_stars("    * test ") == " test "
+    assert p.strip_stars("test  ") == "test  "
+    assert p.strip_stars("  test") == "  test"
+    assert p.strip_stars("  * test\n    attr: 42") == " test\n    attr: 42"
+
+def test_strip():
+    t = threatmodel.ThreatModel()
+    t.threat_library = threatmodel.ThreatLibrary()
+    p = parser.CommentParser(t)
+
+    assert p.strip("* test ") == "test"
+    assert p.strip(" * test ") == "test"
+    assert p.strip("    * test ") == "test"
+    assert p.strip("test  ") == "test"
+    assert p.strip("  test") == "test"
+    assert p.strip("  * test\n    attr: 42  ") == "test\n    attr: 42"
+
+
 def test_yaml_paser():
     t = threatmodel.ThreatModel()
     t.threat_library = threatmodel.ThreatLibrary()
     p = parser.YamlFileParser(t)
-    
+
     yaml_string = """
         key1:
             key11:
@@ -146,16 +206,14 @@ def test_yaml_paser():
                             description: Extended description 1
                             impact: high
     """
-    
+
     data = yaml.load(yaml_string, Loader=yaml.SafeLoader)
     p.parse_data(data, {}, "path/to/file")
-    
+
     assert len(t.threat_library.threats) == 4
-    
+
     assert "#a_string_threat" in t.threat_library.threats
     assert t.threat_library.threats["#a_string_threat"].name == "A string threat"
-    
+
     assert "#extended_threat_1" in t.threat_library.threats
     assert t.threat_library.threats["#extended_threat_1"].custom["impact"] == "high"
-    
-    
