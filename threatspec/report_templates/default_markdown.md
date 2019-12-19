@@ -27,7 +27,11 @@
 ```
 {{ exposure.source.code }}
 ```
+{% if report.repository_url %}
+[{{ exposure.source.filename }}:{{ exposure.source.line }}]({{ report.repository_url }}/{{ exposure.source.filename }}#L{{ exposure.source.line }})
+{% else %}
 {{ exposure.source.filename }}:{{ exposure.source.line }}
+{% endif %}
 {% endfor %}
 
 # Acceptances
@@ -49,7 +53,11 @@
 ```
 {{ acceptance.source.code }}
 ```
+{% if report.repository_url %}
+[{{ acceptance.source.filename }}:{{ acceptance.source.line }}]({{ report.repository_url }}/{{ acceptance.source.filename }}#L{{ acceptance.source.line }})
+{% else %}
 {{ acceptance.source.filename }}:{{ acceptance.source.line }}
+{% endif %}
 {% endfor %}
 
 # Transfers
@@ -71,7 +79,11 @@
 ```
 {{ transfer.source.code }}
 ```
+{% if report.repository_url %}
+[{{ transfer.source.filename }}:{{ transfer.source.line }}]({{ report.repository_url }}/{{ transfer.source.filename }}#L{{ transfer.source.line }})
+{% else %}
 {{ transfer.source.filename }}:{{ transfer.source.line }}
+{% endif %}
 {% endfor %}
 
 # Mitigations
@@ -93,7 +105,11 @@
 ```
 {{ mitigation.source.code }}
 ```
+{% if report.repository_url %}
+[{{ mitigation.source.filename }}:{{ mitigation.source.line }}]({{ report.repository_url }}/{{ mitigation.source.filename }}#L{{ mitigation.source.line }})
+{% else %}
 {{ mitigation.source.filename }}:{{ mitigation.source.line }}
+{% endif %}
 {%- if mitigation.tests %}
 ### Tests
 {% for test in mitigation.tests %}
@@ -105,7 +121,11 @@
 ```
 {{ test.source.code }}
 ```
+{% if report.repository_url %}
+[{{ test.source.filename }}:{{ test.source.line }}]({{ report.repository_url }}/{{ test.source.filename }}#L{{ test.source.line }})
+{% else %}
 {{ test.source.filename }}:{{ test.source.line }}
+{% endif %}
 {% endfor %}
 {% endif %}
 {% endfor %}
@@ -113,7 +133,11 @@
 # Reviews
 {% for review in report.threatmodel.reviews %}
 ## {{ review.component.name }}
+
 {{ review.details }}
+
+{{ review.description }}
+
 {%- if review.custom %}
 | Custom Key | Value |
 | --- | --- |
@@ -125,7 +149,11 @@
 ```
 {{ review.source.code }}
 ```
+{% if report.repository_url %}
+[{{ review.source.filename }}:{{ review.source.line }}]({{ report.repository_url }}/{{ review.source.filename }}#L{{ review.source.line }})
+{% else %}
 {{ review.source.filename }}:{{ review.source.line }}
+{% endif %}
 {% endfor %}
 
 # Connections
@@ -143,7 +171,11 @@
 ```
 {{ connection.source.code }}
 ```
+{% if report.repository_url %}
+[{{ connection.source.filename }}:{{ connection.source.line }}]({{ report.repository_url }}/{{ connection.source.filename }}#L{{ connection.source.line }})
+{% else %}
 {{ connection.source.filename }}:{{ connection.source.line }}
+{% endif %}
 {% endfor %}
 
 # Components
