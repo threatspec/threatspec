@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import os
 import re
 import yaml
 import json
@@ -32,15 +33,17 @@ class Parser():
         self.patterns["connect"] = r'@connects? (?P<source_component>.*?) (?P<direction>with|to) (?P<destination_component>.*?) with (?P<details>.*)'
         self.patterns["review"] = r'@reviews? (?P<component>.*?) (?P<details>.*)'
         self.patterns["test"] = r'@tests? (?P<control>.*?) for (?P<component>.*)'
-        
+
         self.patterns["threat"] = r'@threat (?P<threat>.*)'
         self.patterns["control"] = r'@control (?P<control>.*)'
         self.patterns["component"] = r'@component (?P<component>.*)'
 
+        self.cwd = os.getcwd()
+
     def run_action(self, data, source):
         action = data.pop("action")
         self.action_table[action](data, source=source)
-        
+
     def is_extended(self, line):
         return line[-1] == ":"
 
@@ -50,6 +53,12 @@ class Parser():
                 return True
         return False
 
+    def check_file(self, filename):
+        logger.debug("Parsing file {}".format(filename))
+        if filename.startswith(self.cwd):
+            return filename.replace(self.cwd, "", 1).lstrip(os.path.sep)
+        return filename
+
 
 class CommentParser(Parser):
     def __init__(self, threatmodel, mime=None):
@@ -57,16 +66,16 @@ class CommentParser(Parser):
 
     def parse_comment(self, comment):
         annotations = []
-        
+
         LINE = 0
         EXTENDED = 1
-        
+
         state = LINE
         extended_lines = []
         data = None
-        
+
         line_number = 1
-        
+
         for line in comment.split("\n"):
             stripped_line = line.strip()
             if state == LINE:
@@ -85,7 +94,7 @@ class CommentParser(Parser):
                                 annotations.append(data)
                         else:
                             raise Exception("Could not parse {} pattern:\n{} for comment line:\n{}".format(action, pattern, line))
-                            
+
             elif state == EXTENDED:
                 if stripped_line == "":
                     state = LINE
@@ -95,31 +104,31 @@ class CommentParser(Parser):
                     annotations.append(data)
                 else:
                     extended_lines.append(line)
-                    
+
             line_number += 1
         return annotations
-    
+
 
 class TextFileParser(CommentParser):
     def parse_file(self, filename):
-        logger.debug("Parsing file {}".format(filename))
+        filename = self.check_file(filename)
 
         with open(filename) as fh:
             data = fh.read()
-        
+
         source = {
             "filename": filename,
             "code": ""
         }
-        
+
         for data in self.parse_comment(data):
             source["annotation"] = data.pop("annotation")
             source["line"] = data.pop("line")
             self.run_action(data, source)
 
-    
+
 class SourceFileParser(CommentParser):
-    
+
     def __init__(self, threatmodel, mime=None):
         super().__init__(threatmodel)
         self.mime = mime
@@ -128,37 +137,37 @@ class SourceFileParser(CommentParser):
         count = 0
         i = start_line
         code = []
-        
+
         capture_first_line = not multiline
-            
+
         for line in lines[start_line - 1:]:
             if count >= num_lines:
                 return "".join(code)
-            
+
             if capture_first_line:
                 code.append(line)
                 capture_first_line = False
-                
+
             if i not in commented_lines:
                 code.append(line)
                 count += 1
             i += 1
         return "".join(code)
-    
+
     def get_lines(self, filename):
         try:
             with open(filename) as fh:
                 return fh.readlines()
         except UnicodeDecodeError:
             return None
-        
+
     def parse_file(self, filename):
-        logger.debug("Parsing file {}".format(filename))
-        
+        filename = self.check_file(filename)
+
         lines = self.get_lines(filename)
         if not lines:
             return
-        
+
         commented_line_numbers = []
         comments = []
         try:
@@ -180,7 +189,7 @@ class SourceFileParser(CommentParser):
         except comment_parser.UnsupportedError as e:
             print(e)
             return
-                
+
         for comment in comments:
             comment["text"] = comment["text"].strip()
             num_lines = 5  # Get 5 lines of code
@@ -212,7 +221,7 @@ class YamlFileParser(Parser):
                     return data
                 else:
                     raise Exception("Could not parse {} pattern:\n{} for comment line:\n{}".format(action, pattern, stripped_line))
-                
+
     def parse_key(self, data, parent, filename):
         if isinstance(data, str):
             annotation = self.parse_annotation(data)
@@ -256,9 +265,10 @@ class YamlFileParser(Parser):
         elif isinstance(data, list):
             for v in data:
                 self.parse_data(v, data, filename)
-    
+
     def parse_file(self, filename):
-        logger.debug("Parsing file {}".format(filename))
+        filename = self.check_file(filename)
+
         with open(filename) as fh:
             file_data = yaml.load(fh, Loader=yaml.SafeLoader)
             self.parse_data(file_data, {}, filename)
