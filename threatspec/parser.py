@@ -63,6 +63,7 @@ class Parser():
 class CommentParser(Parser):
     def __init__(self, threatmodel, mime=None):
         super().__init__(threatmodel)
+        self.mime = mime
 
     def parse_comment(self, comment):
         annotations = []
@@ -77,7 +78,7 @@ class CommentParser(Parser):
         line_number = 1
 
         for line in comment.split("\n"):
-            stripped_line = line.strip()
+            stripped_line = self.strip(line)
             if state == LINE:
                 for action in self.patterns.keys():
                     if stripped_line.startswith("@" + action):
@@ -98,17 +99,33 @@ class CommentParser(Parser):
             elif state == EXTENDED:
                 if stripped_line == "":
                     state = LINE
-                    extended_text = "\n".join(extended_lines)
-                    data["annotation"] += "\n" + extended_text
-                    data.update(yaml.load(extended_text, Loader=yaml.SafeLoader))
-                    annotations.append(data)
+                    self.process_extended_lines(extended_lines, data, annotations)
+                    extended_lines = []
                 else:
-                    extended_lines.append(line)
+                    extended_lines.append(self.strip_stars(line))
 
             line_number += 1
+
+        if len(extended_lines) > 0:
+            self.process_extended_lines(extended_lines, data, annotations)
+
         return annotations
 
+    def process_extended_lines(self, extended_lines, data, annotations):
+        extended_text = "\n".join(extended_lines)
+        data["annotation"] += "\n" + extended_text
+        data.update(yaml.load(extended_text, Loader=yaml.SafeLoader))
+        annotations.append(data)
 
+    def strip(self, line):
+        return self.strip_stars(line).strip()
+
+    def strip_stars(self, line):
+        if self.mime not in ["text/html", "text/x-shellscript", "text/xml"]:
+            return re.sub(r"\s*\*+", "", line)
+        return line
+
+      
 class TextFileParser(CommentParser):
     def parse_file(self, filename):
         filename = self.check_file(filename)
@@ -162,7 +179,7 @@ class SourceFileParser(CommentParser):
             return None
 
     def parse_file(self, filename):
-        filename = self.check_file(filename)
+        logger.debug("Parsing file {}".format(filename))
 
         lines = self.get_lines(filename)
         if not lines:
