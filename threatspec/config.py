@@ -7,14 +7,14 @@ class Project():
 class Import():
     def __init__(self, obj):
         self.path = ""
-        
+
         if isinstance(obj, str):
             self.path = obj
         elif isinstance(obj, dict):
             if "path" not in obj:
                 raise ValueError("path key missing from import")
             self.path = obj["path"]
-            
+
 
 class Path():
     def __init__(self, obj):
@@ -44,6 +44,7 @@ class Config():
         self.project = None
         self.imports = []
         self.paths = []
+        self.repository_url = ""
 
     def load(self, data):
         self.project = Project(data["project"]["name"], data["project"]["description"])
@@ -52,3 +53,5 @@ class Config():
                 self.imports.append(Import(import_path))
         for path in data["paths"]:
             self.paths.append(Path(path))
+        if "repository_url" in data["project"]:
+            self.repository_url = data["project"]["repository_url"]

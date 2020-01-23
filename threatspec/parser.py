@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import os
 import re
 import yaml
 import json
@@ -37,6 +38,8 @@ class Parser():
         self.patterns["control"] = r'@control (?P<control>.*)'
         self.patterns["component"] = r'@component (?P<component>.*)'
 
+        self.cwd = os.getcwd()
+
     def run_action(self, data, source):
         action = data.pop("action")
         self.action_table[action](data, source=source)
@@ -49,6 +52,12 @@ class Parser():
             if "@{}".format(key) in line:
                 return True
         return False
+
+    def check_file(self, filename):
+        logger.debug("Parsing file {}".format(filename))
+        if filename.startswith(self.cwd):
+            return filename.replace(self.cwd, "", 1).lstrip(os.path.sep)
+        return filename
 
 
 class CommentParser(Parser):
@@ -116,10 +125,10 @@ class CommentParser(Parser):
             return re.sub(r"\s*\*+", "", line)
         return line
 
-
+      
 class TextFileParser(CommentParser):
     def parse_file(self, filename):
-        logger.debug("Parsing file {}".format(filename))
+        filename = self.check_file(filename)
 
         with open(filename) as fh:
             data = fh.read()
@@ -275,7 +284,8 @@ class YamlFileParser(Parser):
                 self.parse_data(v, data, filename)
 
     def parse_file(self, filename):
-        logger.debug("Parsing file {}".format(filename))
+        filename = self.check_file(filename)
+
         with open(filename) as fh:
             file_data = yaml.load(fh, Loader=yaml.SafeLoader)
             self.parse_data(file_data, {}, filename)

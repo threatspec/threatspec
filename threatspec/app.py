@@ -36,7 +36,7 @@ class ThreatSpecApp():
         else:
             mime = magic.from_file(path, mime=True)
         _, ext = os.path.splitext(path)
-        
+
         if mime == "text/plain":
             if ext in [".yaml", ".yml"]:
                 return parser.YamlFileParser(self.threatmodel)
@@ -53,16 +53,16 @@ class ThreatSpecApp():
     def parse_source(self, paths, parent):
         for config_path in paths:
             abs_path = data.abs_path(parent, config_path.path)
-            
+
             if data.blacklisted_path(abs_path):
                 logger.debug("Skipping path {} as it is blacklisted".format(abs_path))
                 continue
-            
+
             logger.debug("Processing source path {}".format(abs_path))
             if abs_path in self.loaded_source_paths:
                 logger.debug("Skipping source path {} as it has already been processed".format(abs_path))
                 continue
-            
+
             self.loaded_source_paths[abs_path] = True  # We've seen it now
             if data.is_threatspec_path(abs_path):
                 logger.debug("Found threatspec.yaml, loading source configuration from {}".format(abs_path))
@@ -107,13 +107,13 @@ class ThreatSpecApp():
 
     def load_threat_models(self):
         self.load_threat_model(data.cwd())
-        
+
         for import_path in self.config.imports:
             abs_import_path = data.abs_path(import_path.path)
             if abs_import_path == data.cwd():
                 continue  # Local path processed above
             self.load_threat_model(abs_import_path)
-        
+
     def load_threat_library(self, path, local=False):
         filename = data.abs_path(path, "threatmodel", "threats.json")
 
@@ -160,7 +160,7 @@ class ThreatSpecApp():
         if not valid:
             logger.error("Couldn't validate the components library file {}: {}".format(filename, error))
             sys.exit(1)
-            
+
         try:
             if local:
                 run_id = self.threatmodel.run_id
@@ -175,7 +175,7 @@ class ThreatSpecApp():
         self.load_threat_library(data.cwd(), local=True)
         self.load_control_library(data.cwd(), local=True)
         self.load_component_library(data.cwd(), local=True)
-        
+
         for import_path in self.config.imports:
             abs_import_path = data.abs_path(import_path.path)
             if abs_import_path == data.cwd():
@@ -183,15 +183,15 @@ class ThreatSpecApp():
             self.load_threat_library(abs_import_path, local=False)
             self.load_control_library(abs_import_path, local=False)
             self.load_component_library(abs_import_path, local=False)
-            
+
     def save_libraries(self):
         data.write_json_pretty(self.threat_library.save(self.threatmodel.run_id), data.cwd(), "threatmodel", "threats.json")
         data.write_json_pretty(self.control_library.save(self.threatmodel.run_id), data.cwd(), "threatmodel", "controls.json")
         data.write_json_pretty(self.component_library.save(self.threatmodel.run_id), data.cwd(), "threatmodel", "components.json")
-        
+
     def load_local_config(self):
         logger.debug("Loading local threatspec.yaml configuration file")
-        
+
         config_path = data.abs_path(data.cwd(), "threatspec.yaml")
 
         (valid, error) = data.validate_yaml_file(config_path, os.path.join("data", "config_schema.json"))
@@ -211,7 +211,7 @@ class ThreatSpecApp():
             sys.exit(1)
 
         self.load_local_config()
-        
+
         logger.debug("Creating directories")
         try:
             data.create_directories(["threatmodel"])
@@ -251,9 +251,9 @@ The following library files have also been created:
         self.load_local_config()
         self.load_libraries()
         self.load_threat_models()
-        
+
         report_data = reporter.DataReporter(self.config.project, self.threatmodel)
-        
+
         if output.lower() == "template":
             if not template_file:
                 logger.error("Template must be provided for template reports")
@@ -263,20 +263,20 @@ The following library files have also been created:
             report = reporter.TemplateReporter(report_data.data)
             report.generate(file, template_file)
             logger.info("The following threat model has been created: {}".format(file))
-            
+
         elif output.lower() == "markdown":
             if not file:
                 file = "ThreatModel.md"
-        
+
             png_file = file + ".png"
             gv = reporter.GraphvizReporter(report_data.data)
             gv.generate(file)
             logger.info("The following threat model visualisation image has been created: {}".format(png_file))
-        
-            report = reporter.MarkdownReporter(report_data.data)
+
+            report = reporter.MarkdownReporter(report_data.data, self.config)
             report.generate(file, image=png_file)
             logger.info("The following threat model markdown report has been created: {}".format(file))
-            
+
         elif output.lower() == "text":
             if not file:
                 file = "ThreatModel.txt"
