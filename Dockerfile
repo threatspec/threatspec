@@ -1,3 +1,4 @@
-FROM python:3.7-alpine
-RUN pip3 install threatspec
-RUN apk update && apk add graphviz && rm -rf /var/cache/apk/*
+FROM python:3.8-buster
+RUN pip3 install threatspec && apt-get update && apt-get install -y graphviz && rm -rf /var/lib/apt/lists/*
+WORKDIR /data
+ENTRYPOINT ["threatspec"]
