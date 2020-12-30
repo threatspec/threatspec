@@ -20,7 +20,9 @@ paths:
       mime: "text/x-javascript"
 EOF
 
-  mkdir -p threatmodel
+  if [ -d "threatmodel" ]; then
+    rmdir threatmodel
+  fi
 }
 
 teardown_once() {
@@ -42,23 +44,12 @@ teardown() {
   fi
 }
 
-@test "js threat model json files created" {
+@test "creates threatmodel directory if missing" {
+  refute_file_exists "threatmodel"
   run threatspec run
   assert_success
   
   assert_dir_exists "threatmodel"
-  
-  assert_file_exists "threatmodel/threatmodel.json"
-  assert_file_contains "threatmodel/threatmodel.json" '"annotation": "@mitigates Path:To:Component against A Threat with A Control"'
-
-  assert_file_exists "threatmodel/threats.json"
-  assert_file_contains "threatmodel/threats.json" '"id": "#a_threat"'
-  
-  assert_file_exists "threatmodel/controls.json"
-  assert_file_contains "threatmodel/controls.json" '"id": "#a_control"'
-
-  assert_file_exists "threatmodel/components.json"
-  assert_file_contains "threatmodel/components.json" '"id": "#path_to_component"'
 }
 
 

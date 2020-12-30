@@ -42,7 +42,7 @@ teardown() {
   fi
 }
 
-@test "threat model json files created" {
+@test "yaml threat model json files created" {
   run threatspec run
   assert_success
   
