@@ -172,6 +172,7 @@ class ThreatSpecApp():
             pass
 
     def load_libraries(self):
+        self.create_directories()
         self.load_threat_library(data.cwd(), local=True)
         self.load_control_library(data.cwd(), local=True)
         self.load_component_library(data.cwd(), local=True)
@@ -203,27 +204,31 @@ class ThreatSpecApp():
     def init(self):
         logger.info("Initialising threatspec...")
 
-        logger.debug("Creating default configuration file")
-        try:
-            data.copy_pkg_file(os.path.join("data", "default_config.yaml"), "threatspec.yaml")
-        except FileExistsError:
-            logger.error("Configuration file already exists, it looks like threatspec has already been initiated here.")
-            sys.exit(1)
-
+        self.create_default_config()
         self.load_local_config()
+        self.create_directories()
 
-        logger.debug("Creating directories")
-        try:
-            data.create_directories(["threatmodel"])
-        except IOError as e:
-            logger.error("Failed to create directories: {}".format(str(e)))
-            raise
         logger.info("""
 Threatspec has been initialised. You can now configure the project in this
 repository by editing the following file:
 
     threatspec.yaml
         """)
+
+    def create_default_config(self):
+        logger.debug("Creating default configuration file")
+        try:
+            data.copy_pkg_file(os.path.join("data", "default_config.yaml"), "threatspec.yaml")
+        except FileExistsError:
+            logger.warn("Configuration file already exists, it looks like threatspec has already been initiated here.")
+
+    def create_directories(self):
+        logger.debug("Creating directories")
+        try:
+            data.create_directories(["threatmodel"])
+        except IOError as e:
+            logger.error("Failed to create directories: {}".format(str(e)))
+            raise
 
     def run(self):
         logger.info("Running threatspec...")

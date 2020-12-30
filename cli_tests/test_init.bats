@@ -31,3 +31,11 @@ teardown() {
 
     assert_dir_exists "threatmodel"
 }
+
+@test "create missing threatmodel directory" {
+    run threatspec init
+    rmdir threatmodel
+
+    run threatspec init
+    assert_dir_exists "threatmodel"
+}
